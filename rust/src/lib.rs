@@ -1,380 +1,211 @@
-use std::collections::BTreeMap;
-use std::fs::File;
-use std::path::Path;
-use std::sync::mpsc::sync_channel;
-use std::sync::Arc;
-use std::thread;
+#![allow(unsafe_op_in_unsafe_fn)]
 
-use anyhow::{bail, Context, Result};
-use arrow_array::{ArrayRef, Int32Array, Int64Array, RecordBatch, StringArray};
-use arrow_schema::{DataType, Field, Schema};
-use memmap2::MmapOptions;
-use parquet::arrow::ArrowWriter;
-use rayon::prelude::*;
-use parquet::basic::{Compression, ZstdLevel};
-use parquet::file::properties::WriterProperties;
-use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use regex::Regex;
+use pyo3::exceptions::PyRuntimeError;
+use pyo3::types::PyDict;
+use std::fs::File;
+use std::sync::Arc;
+use std::path::Path;
 
-#[derive(Debug, Clone, Copy)]
-pub enum ParquetCompression {
-    Zstd,
-    Snappy,
-    Uncompressed,
+use arrow::array::{ArrayRef, Float64Builder, Int64Builder, StringBuilder};
+use arrow::datatypes::{Field, Schema, DataType};
+use arrow::record_batch::RecordBatch;
+use memmap2::Mmap;
+use parquet::arrow::ArrowWriter;
+use parquet::basic::Compression;
+use parquet::file::properties::WriterProperties;
+use rayon::prelude::*;
+
+#[derive(Clone)]
+enum ColType {
+    String,
+    Integer,
+    Float,
 }
 
-impl ParquetCompression {
-    pub fn from_str(raw: &str) -> Result<Self> {
+impl ColType {
+    fn from_str(raw: &str) -> Result<Self, String> {
         match raw.to_ascii_lowercase().as_str() {
-            "zstd" => Ok(Self::Zstd),
-            "snappy" => Ok(Self::Snappy),
-            "uncompressed" | "none" => Ok(Self::Uncompressed),
-            _ => bail!("Unsupported compression '{raw}'. Use zstd|snappy|uncompressed."),
+            "string" | "str" | "text" | "utf8" => Ok(Self::String),
+            "integer" | "int" | "int64" => Ok(Self::Integer),
+            "float" | "double" | "float64" => Ok(Self::Float),
+            other => Err(format!(
+                "unsupported type '{other}', expected one of: string|integer|float"
+            )),
+        }
+    }
+
+    fn to_arrow_type(&self) -> DataType {
+        match self {
+            Self::String => DataType::Utf8,
+            Self::Integer => DataType::Int64,
+            Self::Float => DataType::Float64,
         }
     }
 }
 
-#[derive(Debug, Clone)]
-enum CobolType {
-    Alpha(usize),
-    Numeric(usize),
-    NumericImplied { int_digits: usize, frac_digits: usize },
-}
-
-#[derive(Debug, Clone)]
-struct FieldSpec {
+#[derive(Clone)]
+struct ColDef {
     name: String,
-    kind: CobolType,
-    offset: usize,
+    start: usize,
+    len: usize,
+    col_type: ColType,
 }
 
-impl FieldSpec {
-    fn width(&self) -> usize {
-        match self.kind {
-            CobolType::Alpha(w) => w,
-            CobolType::Numeric(w) => w,
-            CobolType::NumericImplied {
-                int_digits,
-                frac_digits,
-            } => int_digits + frac_digits,
+enum ColBuilder {
+    String(StringBuilder),
+    Integer(Int64Builder),
+    Float(Float64Builder),
+}
+
+impl ColBuilder {
+    fn from_col_type(col_type: &ColType) -> Self {
+        match col_type {
+            ColType::String => Self::String(StringBuilder::new()),
+            ColType::Integer => Self::Integer(Int64Builder::new()),
+            ColType::Float => Self::Float(Float64Builder::new()),
         }
     }
-}
 
-trait NamedType {
-    fn map_with_name(self, name: String) -> Option<(String, CobolType)>;
-}
-
-impl NamedType for CobolType {
-    fn map_with_name(self, name: String) -> Option<(String, CobolType)> {
-        Some((name, self))
-    }
-}
-
-fn parse_copybook(copybook_text: &str) -> Result<Vec<FieldSpec>> {
-    let alpha_re = Regex::new(r"(?i)^\s*\d+\s+([A-Z0-9_-]+)\s+PIC\s+A\((\d+)\)\s*[.,]?\s*$")?;
-    let num_re = Regex::new(r"(?i)^\s*\d+\s+([A-Z0-9_-]+)\s+PIC\s+9\((\d+)\)\s*[.,]?\s*$")?;
-    let num_v_re = Regex::new(
-        r"(?i)^\s*\d+\s+([A-Z0-9_-]+)\s+PIC\s+9\((\d+)\)\s*V\s*9\((\d+)\)\s*[.,]?\s*$",
-    )?;
-    let num_v_plain_re =
-        Regex::new(r"(?i)^\s*\d+\s+([A-Z0-9_-]+)\s+PIC\s+9\((\d+)\)\s*V\s*(9+)\s*[.,]?\s*$")?;
-
-    let mut specs = Vec::new();
-    let mut offset = 0usize;
-
-    for raw_line in copybook_text.lines() {
-        let line = raw_line.trim();
-        if line.is_empty() || line.starts_with('*') {
-            continue;
-        }
-
-        let parsed = if let Some(cap) = alpha_re.captures(line) {
-            let name = cap[1].to_string();
-            let w: usize = cap[2].parse().context("Invalid A(n) width")?;
-            CobolType::Alpha(w).map_with_name(name)
-        } else if let Some(cap) = num_v_re.captures(line) {
-            let name = cap[1].to_string();
-            let int_digits: usize = cap[2].parse().context("Invalid 9(n) integer width")?;
-            let frac_digits: usize = cap[3].parse().context("Invalid 9(m) fraction width")?;
-            CobolType::NumericImplied {
-                int_digits,
-                frac_digits,
+    fn append_from_ascii(&mut self, value: &[u8], col_name: &str) -> Result<(), String> {
+        let s = String::from_utf8_lossy(value);
+        let trimmed = s.trim();
+        match self {
+            ColBuilder::String(builder) => {
+                builder.append_value(trimmed);
+                Ok(())
             }
-            .map_with_name(name)
-        } else if let Some(cap) = num_v_plain_re.captures(line) {
-            let name = cap[1].to_string();
-            let int_digits: usize = cap[2].parse().context("Invalid 9(n) integer width")?;
-            let frac_digits: usize = cap[3].len();
-            CobolType::NumericImplied {
-                int_digits,
-                frac_digits,
-            }
-            .map_with_name(name)
-        } else if let Some(cap) = num_re.captures(line) {
-            let name = cap[1].to_string();
-            let w: usize = cap[2].parse().context("Invalid 9(n) width")?;
-            CobolType::Numeric(w).map_with_name(name)
-        } else {
-            None
-        };
-
-        if let Some((name, kind)) = parsed {
-            let spec = FieldSpec { name, kind, offset };
-            offset += spec.width();
-            specs.push(spec);
-        }
-    }
-
-    if specs.is_empty() {
-        bail!("No supported PIC fields found in copybook.");
-    }
-    Ok(specs)
-}
-
-fn schema_for_specs(specs: &[FieldSpec]) -> Arc<Schema> {
-    let fields: Vec<Field> = specs
-        .iter()
-        .map(|spec| {
-            let dtype = match spec.kind {
-                CobolType::Alpha(_) => DataType::Utf8,
-                CobolType::Numeric(_) => DataType::Int32,
-                CobolType::NumericImplied { .. } => DataType::Int64,
-            };
-            Field::new(spec.name.clone(), dtype, false)
-        })
-        .collect();
-    Arc::new(Schema::new(fields))
-}
-
-fn parse_ascii_i32(bytes: &[u8]) -> Result<i32> {
-    let s = std::str::from_utf8(bytes)?.trim();
-    Ok(if s.is_empty() { 0 } else { s.parse::<i32>()? })
-}
-
-fn parse_ascii_i64(bytes: &[u8]) -> Result<i64> {
-    let s = std::str::from_utf8(bytes)?.trim();
-    Ok(if s.is_empty() { 0 } else { s.parse::<i64>()? })
-}
-
-fn parse_batch(specs: &[FieldSpec], rows: &[u8], record_len: usize, nrows: usize) -> Result<RecordBatch> {
-    let mut string_cols: Vec<Vec<String>> = Vec::new();
-    let mut i32_cols: Vec<Vec<i32>> = Vec::new();
-    let mut i64_cols: Vec<Vec<i64>> = Vec::new();
-
-    for spec in specs {
-        match spec.kind {
-            CobolType::Alpha(_) => string_cols.push(Vec::with_capacity(nrows)),
-            CobolType::Numeric(_) => i32_cols.push(Vec::with_capacity(nrows)),
-            CobolType::NumericImplied { .. } => i64_cols.push(Vec::with_capacity(nrows)),
-        }
-    }
-
-    let mut alpha_idx = 0usize;
-    let mut num_idx = 0usize;
-    let mut num_v_idx = 0usize;
-
-    for row_idx in 0..nrows {
-        let base = row_idx * record_len;
-        for spec in specs {
-            let start = base + spec.offset;
-            let end = start + spec.width();
-            let cell = &rows[start..end];
-            match spec.kind {
-                CobolType::Alpha(_) => {
-                    let v = std::str::from_utf8(cell)?.trim_end().to_string();
-                    string_cols[alpha_idx].push(v);
-                    alpha_idx += 1;
+            ColBuilder::Integer(builder) => {
+                if trimmed.is_empty() {
+                    builder.append_null();
+                    return Ok(());
                 }
-                CobolType::Numeric(_) => {
-                    i32_cols[num_idx].push(parse_ascii_i32(cell)?);
-                    num_idx += 1;
+                let parsed = trimmed.parse::<i64>().map_err(|e| {
+                    format!("failed parsing integer column '{col_name}' value '{trimmed}': {e}")
+                })?;
+                builder.append_value(parsed);
+                Ok(())
+            }
+            ColBuilder::Float(builder) => {
+                if trimmed.is_empty() {
+                    builder.append_null();
+                    return Ok(());
                 }
-                CobolType::NumericImplied { .. } => {
-                    i64_cols[num_v_idx].push(parse_ascii_i64(cell)?);
-                    num_v_idx += 1;
-                }
-            }
-        }
-        alpha_idx = 0;
-        num_idx = 0;
-        num_v_idx = 0;
-    }
-
-    let mut arrays: Vec<ArrayRef> = Vec::with_capacity(specs.len());
-    let mut alpha_take = 0usize;
-    let mut num_take = 0usize;
-    let mut num_v_take = 0usize;
-    for spec in specs {
-        match spec.kind {
-            CobolType::Alpha(_) => {
-                arrays.push(Arc::new(StringArray::from(std::mem::take(
-                    &mut string_cols[alpha_take],
-                ))) as ArrayRef);
-                alpha_take += 1;
-            }
-            CobolType::Numeric(_) => {
-                arrays.push(Arc::new(Int32Array::from(std::mem::take(
-                    &mut i32_cols[num_take],
-                ))) as ArrayRef);
-                num_take += 1;
-            }
-            CobolType::NumericImplied { .. } => {
-                arrays.push(Arc::new(Int64Array::from(std::mem::take(
-                    &mut i64_cols[num_v_take],
-                ))) as ArrayRef);
-                num_v_take += 1;
+                let parsed = trimmed.parse::<f64>().map_err(|e| {
+                    format!("failed parsing float column '{col_name}' value '{trimmed}': {e}")
+                })?;
+                builder.append_value(parsed);
+                Ok(())
             }
         }
     }
 
-    let schema = schema_for_specs(specs);
-    Ok(RecordBatch::try_new(schema, arrays)?)
+    fn finish(self) -> ArrayRef {
+        match self {
+            ColBuilder::String(mut b) => Arc::new(b.finish()) as ArrayRef,
+            ColBuilder::Integer(mut b) => Arc::new(b.finish()) as ArrayRef,
+            ColBuilder::Float(mut b) => Arc::new(b.finish()) as ArrayRef,
+        }
+    }
 }
 
-pub fn convert_fixed_to_parquet(
-    input: &Path,
-    copybook: &Path,
-    output: &Path,
-    line_terminated: bool,
-    batch_records: usize,
-    compression: ParquetCompression,
-) -> Result<()> {
-    let copybook_text = std::fs::read_to_string(copybook).context("Failed to read copybook file")?;
-    let specs = parse_copybook(&copybook_text)?;
-    let fixed_len: usize = specs.iter().map(|s| s.width()).sum();
-    let record_len = if line_terminated { fixed_len + 1 } else { fixed_len };
-
-    let in_file = File::open(input).context("Failed to open input file")?;
-    // SAFETY: read-only memory map over a valid file descriptor.
-    let mmap = unsafe { MmapOptions::new().map(&in_file).context("Failed to mmap input file")? };
-    if mmap.len() % record_len != 0 {
-        bail!(
-            "Input size {} is not divisible by record length {}",
-            mmap.len(),
-            record_len
-        );
-    }
-    let total_rows = mmap.len() / record_len;
-
-    let out_file = File::create(output).context("Failed to create output parquet")?;
-    let schema = schema_for_specs(&specs);
-    let codec = match compression {
-        ParquetCompression::Zstd => Compression::ZSTD(ZstdLevel::try_new(3)?),
-        ParquetCompression::Snappy => Compression::SNAPPY,
-        ParquetCompression::Uncompressed => Compression::UNCOMPRESSED,
-    };
-    let props = WriterProperties::builder().set_compression(codec).build();
-    let writer =
-        ArrowWriter::try_new(out_file, schema, Some(props)).context("Parquet init failed")?;
-
-    // Pipeline: Rayon parses batches on all cores while a dedicated thread writes Parquet
-    // (ZSTD) in strict row order. A serial parse→write loop leaves compression on one core;
-    // overlapping parse with write uses the machine much more fully on large inputs.
-    let batch_starts: Vec<usize> = (0..total_rows).step_by(batch_records).collect();
-    let num_batches = batch_starts.len();
-    if num_batches == 0 {
-        writer.close()?;
-        return Ok(());
-    }
-
-    let parse_threads = std::thread::available_parallelism()
-        .map(|n| (n.get() as usize).max(2))
-        .unwrap_or(4);
-    let queue = (parse_threads * 4).max(16);
-
-    let specs = Arc::new(specs);
-    let mmap = Arc::new(mmap);
-
-    type Msg = Result<(usize, RecordBatch), String>;
-    let (tx, rx) = sync_channel::<Msg>(queue);
-
-    let mut writer = writer;
-    let writer_handle = thread::spawn(move || -> Result<()> {
-        let mut next_expected = 0usize;
-        let mut pending: BTreeMap<usize, RecordBatch> = BTreeMap::new();
-        while next_expected < num_batches {
-            match rx.recv() {
-                Ok(Ok((idx, batch))) => {
-                    pending.insert(idx, batch);
-                    while let Some(b) = pending.remove(&next_expected) {
-                        writer.write(&b).context("parquet write")?;
-                        next_expected += 1;
-                    }
-                }
-                Ok(Err(e)) => bail!("batch parse failed: {e}"),
-                Err(_) => bail!(
-                    "writer channel closed early ({}/{} batches)",
-                    next_expected,
-                    num_batches
-                ),
-            }
-        }
-        writer.close().context("parquet close")?;
-        Ok(())
-    });
-
-    let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(parse_threads)
-        .build()
-        .context("rayon ThreadPoolBuilder")?;
-
-    let tx_clone = tx.clone();
-    let parse_result: Result<()> = pool.install(|| {
-        batch_starts
-            .par_iter()
-            .enumerate()
-            .try_for_each(|(batch_idx, &start_row)| {
-                let end_row = std::cmp::min(start_row + batch_records, total_rows);
-                let start_byte = start_row * record_len;
-                let end_byte = end_row * record_len;
-                let rows_slice = &mmap[start_byte..end_byte];
-                match parse_batch(&specs, rows_slice, record_len, end_row - start_row) {
-                    Ok(batch) => tx_clone
-                        .send(Ok((batch_idx, batch)))
-                        .map_err(|e| anyhow::anyhow!("send batch {batch_idx}: {e}")),
-                    Err(e) => tx_clone
-                        .send(Err(e.to_string()))
-                        .map_err(|e| anyhow::anyhow!("send error for batch {batch_idx}: {e}")),
-                }
-            })
-    });
-
-    drop(tx);
-    let join_result = writer_handle
-        .join()
-        .map_err(|_| anyhow::anyhow!("writer thread panicked"))?;
-    parse_result?;
-    join_result?;
-    Ok(())
-}
-
-#[pyfunction(signature=(input, copybook, output, line_terminated=true, batch_records=500_000, compression="zstd"))]
-fn parse_copy_to_parquet(
-    input: &str,
-    copybook: &str,
-    output: &str,
-    line_terminated: bool,
-    batch_records: usize,
-    compression: &str,
+#[pyfunction]
+fn parse_and_write_parquet(
+    input_path: String,
+    output_folder: String,
+    schema_dict: &Bound<'_, PyDict>,
+    record_size: usize,
+    rows_per_batch: usize, // Internal batching for memory management
 ) -> PyResult<()> {
-    let compression = ParquetCompression::from_str(compression)
-        .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-    convert_fixed_to_parquet(
-        Path::new(input),
-        Path::new(copybook),
-        Path::new(output),
-        line_terminated,
-        batch_records,
-        compression,
-    )
-    .map_err(|e| PyRuntimeError::new_err(e.to_string()))
+    std::fs::create_dir_all(&output_folder).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    // 1. Setup Schema
+    let mut col_defs = Vec::new();
+    let mut fields = Vec::new();
+    for (name, pos) in schema_dict.iter() {
+        let name_str: String = name.extract()?;
+        let (start, len, col_type) = if let Ok(pos_typed) = pos.extract::<(usize, usize, String)>()
+        {
+            (
+                pos_typed.0,
+                pos_typed.1,
+                ColType::from_str(&pos_typed.2).map_err(PyRuntimeError::new_err)?,
+            )
+        } else if let Ok(pos_untyped) = pos.extract::<(usize, usize)>() {
+            (pos_untyped.0, pos_untyped.1, ColType::String)
+        } else {
+            return Err(PyRuntimeError::new_err(
+                "schema values must be (start, len) or (start, len, type)",
+            ));
+        };
+        col_defs.push(ColDef {
+            name: name_str,
+            start,
+            len,
+            col_type,
+        });
+    }
+    for col in &col_defs {
+        fields.push(Field::new(&col.name, col.col_type.to_arrow_type(), true));
+    }
+    let schema = Arc::new(Schema::new(fields));
+
+    // 2. Map File
+    let file = File::open(&input_path)?;
+    let mmap = unsafe { Mmap::map(&file)? };
+    let total_records = mmap.len() / record_size;
+    
+    // 3. Determine segmentation
+    let num_cores = rayon::current_num_threads();
+    let records_per_core = total_records / num_cores;
+
+    // 4. Parallel execution: One task per core
+    (0..num_cores)
+        .into_par_iter()
+        .try_for_each(|core_id| -> Result<(), String> {
+        let start_rec = core_id * records_per_core;
+        // Last core takes the remainder
+        let end_rec = if core_id == num_cores - 1 { total_records } else { (core_id + 1) * records_per_core };
+        
+        let core_segment = &mmap[start_rec * record_size .. end_rec * record_size];
+        
+        // Prepare Parquet Writer for this specific core
+        let shard_path = Path::new(&output_folder).join(format!("shard_{}.parquet", core_id));
+        let shard_file = File::create(shard_path).map_err(|e| e.to_string())?;
+        let props = WriterProperties::builder()
+            .set_compression(Compression::SNAPPY)
+            .build();
+        let mut writer = ArrowWriter::try_new(shard_file, schema.clone(), Some(props))
+            .map_err(|e| e.to_string())?;
+
+        // Process in batches to avoid loading the entire segment into Arrow memory at once
+        for batch_chunk in core_segment.chunks(record_size * rows_per_batch) {
+            let mut builders = col_defs
+                .iter()
+                .map(|col| ColBuilder::from_col_type(&col.col_type))
+                .collect::<Vec<_>>();
+            
+            for record in batch_chunk.chunks_exact(record_size) {
+                for (i, col) in col_defs.iter().enumerate() {
+                    let val = &record[col.start..(col.start + col.len)];
+                    builders[i].append_from_ascii(val, &col.name)?;
+                }
+            }
+
+            let arrays: Vec<ArrayRef> = builders.into_iter().map(ColBuilder::finish).collect();
+            let batch = RecordBatch::try_new(schema.clone(), arrays).map_err(|e| e.to_string())?;
+            writer.write(&batch).map_err(|e| e.to_string())?;
+        }
+        
+        writer.close().map_err(|e| e.to_string())?;
+        Ok(())
+    })
+    .map_err(PyRuntimeError::new_err)?;
+
+    Ok(())
 }
 
 #[pymodule]
-fn fixed2parquet(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(parse_copy_to_parquet, m)?)?;
+fn mainframe_tools(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(parse_and_write_parquet, m)?)?;
     Ok(())
 }
-

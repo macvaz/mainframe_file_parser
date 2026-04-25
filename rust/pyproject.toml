@@ -3,11 +3,10 @@ requires = ["maturin>=1.7,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "fixed2parquet"
+name = "mainframe_tools"
 version = "0.1.0"
 requires-python = ">=3.12"
 
 [tool.maturin]
-module-name = "fixed2parquet"
 bindings = "pyo3"
-
+module-name = "mainframe_tools"

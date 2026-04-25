@@ -1,20 +1,16 @@
 [package]
-name = "fixed2parquet"
+name = "mainframe_tools"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [lib]
-name = "fixed2parquet"
+name = "mainframe_tools"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-anyhow = "1"
-clap = { version = "4", features = ["derive"] }
-memmap2 = "0.9"
-rayon = "1"
-regex = "1"
-arrow-array = "54"
-arrow-schema = "54"
-parquet = { version = "54", features = ["arrow"] }
 pyo3 = { version = "0.22", features = ["extension-module"] }
+rayon = "1"
+memmap2 = "0.9"
+arrow = { version = "54", features = ["prettyprint"] }
+parquet = { version = "54", features = ["arrow"] }
 
