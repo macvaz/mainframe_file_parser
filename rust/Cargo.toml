@@ -1,0 +1,20 @@
+[package]
+name = "fixed2parquet"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "fixed2parquet"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+memmap2 = "0.9"
+rayon = "1"
+regex = "1"
+arrow-array = "54"
+arrow-schema = "54"
+parquet = { version = "54", features = ["arrow"] }
+pyo3 = { version = "0.22", features = ["extension-module"] }
+
