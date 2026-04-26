@@ -38,6 +38,13 @@ uv pip install --python .venv/bin/python --reinstall --no-deps \
   rust/target/wheels/mainframe_tools-*.whl
 ```
 
+For simplicity, there is a shell script in bin for automating building the rust extension:
+
+```bash
+bin/build_rust_extension.sh
+```
+
+
 ## Verify Import
 
 ```bash
