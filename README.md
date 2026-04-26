@@ -53,6 +53,28 @@ uv run python -c "import mainframe_tools; print(hasattr(mainframe_tools, 'parse_
 
 Expected output: `True`
 
+## Run the example script
+
+From project root (Rust wheel installed, input data at `data/huge_fixed_size_file.dat` as in `run.py`):
+
+```bash
+uv run run.py
+```
+
+The script prints how long `main()` took. **Timing:** if `data/huge_fixed_size_file.parquet` does not exist, `main()` finishes in **less than 3 seconds** (Parquet is generated first). If that Parquet file already exists, `main()` finishes in **single-digit milliseconds**.
+
+### Example column validations
+
+`run.py` applies `validation_etl` to the LazyFrame from `main()` and adds three boolean flags (one per source column):
+
+| Source column | Flag | Rule |
+| --- | --- | --- |
+| `FULL_NAME` | `VALID_NAME` | String byte length is exactly 8 (`str.len_bytes() == 8`). |
+| `YEAR` | `VALID_YEAR` | Integer year is between **1900** and **2000** (inclusive). |
+| `AMOUNT` | `VALID_AMOUNT` | Decimal amount is between **0** and **672581176.44** (inclusive). |
+
+The script then prints the first 10 rows with these flags materialized.
+
 ### `parse_and_write_parquet` column types
 
 The schema dict maps each output column to `(byte_offset, length, type)`:
