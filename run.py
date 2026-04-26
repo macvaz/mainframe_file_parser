@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 import polars as pl
 
 from file_validator.main import main
@@ -22,6 +24,8 @@ def validation_etl(df: pl.LazyFrame) -> pl.LazyFrame:
 
 
 if __name__ == "__main__":
+    t0 = time.perf_counter()
     input_df = main(INPUT_PATH, OUTPUT_PATH, SCHEMA)
     validations_df = validation_etl(input_df)
     print(validations_df.head(10).collect())
+    print(f"main() took {time.perf_counter() - t0:.3f}s")
