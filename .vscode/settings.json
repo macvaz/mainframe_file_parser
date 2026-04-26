@@ -7,5 +7,15 @@
     "files.exclude": {
         "**/*.egg-info": true,
         "**/.eggs": true
+    },
+    "ruff.enable": true,
+    "ruff.importStrategy": "fromEnvironment",
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+        }
     }
 }

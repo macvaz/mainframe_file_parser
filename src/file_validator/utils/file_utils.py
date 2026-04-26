@@ -22,7 +22,9 @@ def get_total_length(schema: dict, *, line_terminated: bool = False) -> int:
             )
         start, length = int(spec[0]), int(spec[1])
         if start < 0 or length < 0:
-            raise ValueError(f"schema[{name!r}]: offset and length must be non-negative")
+            raise ValueError(
+                f"schema[{name!r}]: offset and length must be non-negative"
+            )
         max_end = max(max_end, start + length)
     return max_end + (1 if line_terminated else 0)
 

@@ -22,6 +22,7 @@ def validation_etl(df: pl.LazyFrame) -> pl.LazyFrame:
         VALID_AMOUNT=pl.col("AMOUNT").is_between(0, 672581176.44),
     )
 
+
 if __name__ == "__main__":
     with tempfile.TemporaryDirectory(prefix="file_validator_parquet_") as tmpdir:
         output_path = Path(tmpdir) / "parquet"
