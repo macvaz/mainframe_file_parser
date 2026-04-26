@@ -16,7 +16,7 @@ SCHEMA_MAP = {
 
 
 @pytest.mark.huge
-def test_huge_fixed_file_to_parquet_shards() -> None:
+def test_huge_fixed_file_to_parquet_single_writer() -> None:
     mainframe_tools = pytest.importorskip(
         "mainframe_tools",
         reason=(
@@ -34,7 +34,7 @@ def test_huge_fixed_file_to_parquet_shards() -> None:
     assert file_size % RECORD_SIZE == 0
     expected_rows = file_size // RECORD_SIZE
 
-    out_dir = Path(tempfile.mkdtemp(prefix="huge_parquet_shards_"))
+    out_dir = Path(tempfile.mkdtemp(prefix="huge_parquet_out_"))
     mainframe_tools.parse_and_write_parquet(
         str(input_path),
         str(out_dir),
@@ -43,12 +43,9 @@ def test_huge_fixed_file_to_parquet_shards() -> None:
         500_000,
     )
 
-    shards = sorted(out_dir.glob("shard_*.parquet"))
-    assert shards, "No parquet shards generated."
+    out_file = out_dir / "output.parquet"
+    assert out_file.is_file(), f"Expected {out_file}"
 
-    total_rows = 0
-    for shard in shards:
-        total_rows += pq.read_metadata(shard.as_posix()).num_rows
-
+    total_rows = pq.read_metadata(out_file.as_posix()).num_rows
     assert total_rows == expected_rows
 
