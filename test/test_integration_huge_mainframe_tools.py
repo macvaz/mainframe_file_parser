@@ -43,9 +43,14 @@ def test_huge_fixed_file_to_parquet_single_writer() -> None:
         500_000,
     )
 
-    out_file = out_dir / "output.parquet"
-    assert out_file.is_file(), f"Expected {out_file}"
+    shard_files = sorted(out_dir.glob("shard_*.parquet"))
+    assert shard_files, (
+        f"Expected shard_*.parquet under {out_dir}, "
+        f"found: {sorted(p.name for p in out_dir.iterdir())}"
+    )
 
-    total_rows = pq.read_metadata(out_file.as_posix()).num_rows
+    total_rows = sum(
+        pq.read_metadata(p.as_posix()).num_rows for p in shard_files
+    )
     assert total_rows == expected_rows
 
