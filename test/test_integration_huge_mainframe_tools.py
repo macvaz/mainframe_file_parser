@@ -34,7 +34,7 @@ def test_huge_fixed_file_to_parquet_single_writer() -> None:
     assert file_size % RECORD_SIZE == 0
     expected_rows = file_size // RECORD_SIZE
 
-    out_dir = Path(tempfile.mkdtemp(prefix="huge_parquet_out_"))
+    out_dir = root / "data" / "parquet"
     mainframe_tools.parse_and_write_parquet(
         str(input_path),
         str(out_dir),

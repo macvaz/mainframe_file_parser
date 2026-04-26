@@ -34,7 +34,7 @@ if [[ ! -x "${VENV_PYTHON}" ]]; then
 fi
 
 echo "Building wheel with maturin..."
-maturin build --manifest-path "${RUST_MANIFEST}" -o "${WHEEL_DIR}"
+maturin build --release --manifest-path "${RUST_MANIFEST}" -o "${WHEEL_DIR}"
 
 echo "Installing wheel into .venv..."
 uv pip install --python "${VENV_PYTHON}" --reinstall --no-deps \
