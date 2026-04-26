@@ -5,6 +5,8 @@ build/
 dist/
 wheels/
 *.egg-info
+# setuptools sometimes drops *.egg-info next to packages under src/
+src/*.egg-info/
 
 # Virtual environments
 .venv

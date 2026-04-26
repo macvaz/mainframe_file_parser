@@ -33,7 +33,7 @@ From project root:
 ```bash
 source "$HOME/.cargo/env"
 source .venv/bin/activate
-maturin build --manifest-path rust/Cargo.toml -o rust/target/wheels
+maturin build --release --manifest-path rust/Cargo.toml -o rust/target/wheels
 uv pip install --python .venv/bin/python --reinstall --no-deps \
   rust/target/wheels/mainframe_tools-*.whl
 ```
@@ -45,6 +45,15 @@ uv run python -c "import mainframe_tools; print(hasattr(mainframe_tools, 'parse_
 ```
 
 Expected output: `True`
+
+### `parse_and_write_parquet` column types
+
+The schema dict maps each output column to `(byte_offset, length, type)`:
+
+- `string` (default if you pass only `(offset, len)`)
+- `integer` → Parquet `int64`
+- `float` → `float64`
+- `decimal(precision,scale)` → Parquet `decimal128`; value is trimmed ASCII digits interpreted with an implied decimal point before the last `scale` digits (COBOL `V` style). Example: PIC `9(9)V99` on 11 bytes → `decimal(11,2)`.
 
 ## Run Tests
 

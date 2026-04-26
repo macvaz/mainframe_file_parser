@@ -7,8 +7,8 @@ use std::fs::File;
 use std::sync::Arc;
 use std::path::Path;
 
-use arrow::array::{ArrayRef, Float64Builder, Int64Builder, StringBuilder};
-use arrow::datatypes::{Field, Schema, DataType};
+use arrow::array::{ArrayRef, Decimal128Builder, Float64Builder, Int64Builder, StringBuilder};
+use arrow::datatypes::{DataType, Field, Schema};
 use arrow::record_batch::RecordBatch;
 use memmap2::Mmap;
 use parquet::arrow::ArrowWriter;
@@ -16,21 +16,62 @@ use parquet::basic::Compression;
 use parquet::file::properties::WriterProperties;
 use rayon::prelude::*;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 enum ColType {
     String,
     Integer,
     Float,
+    /// Fixed-point decimal: `precision` total digits, `scale` digits after the point (SQL style).
+    /// ASCII field is trimmed digits only; value is unscaled = integer formed by digits
+    /// (implied decimal point before the last `scale` digit positions, COBOL `V` style).
+    Decimal { precision: u8, scale: i8 },
 }
 
 impl ColType {
     fn from_str(raw: &str) -> Result<Self, String> {
-        match raw.to_ascii_lowercase().as_str() {
+        let lower = raw.trim().to_ascii_lowercase();
+        if let Some(rest) = lower.strip_prefix("decimal") {
+            let rest = rest.trim();
+            if rest.is_empty() {
+                return Err(
+                    "decimal requires precision and scale, e.g. decimal(11,2)".to_string(),
+                );
+            }
+            let inner = rest
+                .strip_prefix('(')
+                .and_then(|s| s.strip_suffix(')'))
+                .ok_or_else(|| {
+                    format!("invalid decimal type '{raw}', use decimal(precision,scale)")
+                })?;
+            let (p_str, s_str) = inner.split_once(',').ok_or_else(|| {
+                format!("invalid decimal type '{raw}', use decimal(precision,scale)")
+            })?;
+            let precision: u8 = p_str
+                .trim()
+                .parse()
+                .map_err(|_| format!("invalid decimal precision in '{raw}'"))?;
+            let scale: i8 = s_str
+                .trim()
+                .parse()
+                .map_err(|_| format!("invalid decimal scale in '{raw}'"))?;
+            if precision == 0 || precision > 38 {
+                return Err(format!(
+                    "decimal precision must be 1..=38, got {precision} in '{raw}'"
+                ));
+            }
+            if scale < 0 || scale as i32 > precision as i32 {
+                return Err(format!(
+                    "decimal scale must be 0..=precision, got scale={scale} precision={precision} in '{raw}'"
+                ));
+            }
+            return Ok(Self::Decimal { precision, scale });
+        }
+        match lower.as_str() {
             "string" | "str" | "text" | "utf8" => Ok(Self::String),
             "integer" | "int" | "int64" => Ok(Self::Integer),
             "float" | "double" | "float64" => Ok(Self::Float),
             other => Err(format!(
-                "unsupported type '{other}', expected one of: string|integer|float"
+                "unsupported type '{other}', expected one of: string|integer|float|decimal(p,s)"
             )),
         }
     }
@@ -40,6 +81,7 @@ impl ColType {
             Self::String => DataType::Utf8,
             Self::Integer => DataType::Int64,
             Self::Float => DataType::Float64,
+            Self::Decimal { precision, scale } => DataType::Decimal128(*precision, *scale),
         }
     }
 }
@@ -56,6 +98,11 @@ enum ColBuilder {
     String(StringBuilder),
     Integer(Int64Builder),
     Float(Float64Builder),
+    Decimal {
+        builder: Decimal128Builder,
+        precision: u8,
+        scale: i8,
+    },
 }
 
 impl ColBuilder {
@@ -64,6 +111,12 @@ impl ColBuilder {
             ColType::String => Self::String(StringBuilder::new()),
             ColType::Integer => Self::Integer(Int64Builder::new()),
             ColType::Float => Self::Float(Float64Builder::new()),
+            ColType::Decimal { precision, scale } => Self::Decimal {
+                builder: Decimal128Builder::new()
+                    .with_data_type(DataType::Decimal128(*precision, *scale)),
+                precision: *precision,
+                scale: *scale,
+            },
         }
     }
 
@@ -97,14 +150,53 @@ impl ColBuilder {
                 builder.append_value(parsed);
                 Ok(())
             }
+            ColBuilder::Decimal {
+                builder,
+                precision,
+                scale,
+            } => {
+                if trimmed.is_empty() {
+                    builder.append_null();
+                    return Ok(());
+                }
+                if !trimmed.bytes().all(|b| b.is_ascii_digit()) {
+                    return Err(format!(
+                        "decimal column '{col_name}' expected ASCII digits, got '{trimmed}'"
+                    ));
+                }
+                let unscaled: i128 = trimmed.parse().map_err(|e| {
+                    format!("failed parsing decimal column '{col_name}' value '{trimmed}': {e}")
+                })?;
+                if let Some(base) = 10_i128.checked_pow(*precision as u32) {
+                    let max_abs = base.saturating_sub(1);
+                    if unscaled.abs() > max_abs {
+                        return Err(format!(
+                            "decimal column '{col_name}' value unscaled={unscaled} exceeds DECIMAL({precision},{scale}) (|max| = {max_abs})"
+                        ));
+                    }
+                }
+                builder.append_value(unscaled);
+                Ok(())
+            }
         }
     }
 
-    fn finish(self) -> ArrayRef {
+    fn finish(self) -> Result<ArrayRef, String> {
         match self {
-            ColBuilder::String(mut b) => Arc::new(b.finish()) as ArrayRef,
-            ColBuilder::Integer(mut b) => Arc::new(b.finish()) as ArrayRef,
-            ColBuilder::Float(mut b) => Arc::new(b.finish()) as ArrayRef,
+            ColBuilder::String(mut b) => Ok(Arc::new(b.finish()) as ArrayRef),
+            ColBuilder::Integer(mut b) => Ok(Arc::new(b.finish()) as ArrayRef),
+            ColBuilder::Float(mut b) => Ok(Arc::new(b.finish()) as ArrayRef),
+            ColBuilder::Decimal {
+                mut builder,
+                precision,
+                scale,
+            } => {
+                let arr = builder
+                    .finish()
+                    .with_precision_and_scale(precision, scale)
+                    .map_err(|e| e.to_string())?;
+                Ok(Arc::new(arr) as ArrayRef)
+            }
         }
     }
 }
@@ -191,7 +283,10 @@ fn parse_and_write_parquet(
                 }
             }
 
-            let arrays: Vec<ArrayRef> = builders.into_iter().map(ColBuilder::finish).collect();
+            let arrays: Vec<ArrayRef> = builders
+                .into_iter()
+                .map(ColBuilder::finish)
+                .collect::<Result<Vec<_>, String>>()?;
             let batch = RecordBatch::try_new(schema.clone(), arrays).map_err(|e| e.to_string())?;
             writer.write(&batch).map_err(|e| e.to_string())?;
         }

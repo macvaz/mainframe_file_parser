@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
@@ -11,12 +11,14 @@ RECORD_SIZE = 66
 SCHEMA_MAP = {
     "FULL_NAME": (0, 50, "string"),
     "YEAR": (50, 4, "integer"),
-    "AMOUNT": (54, 11, "integer"),
+    # PIC 9(9)V99: 11 digit positions, 2 implied decimals → DECIMAL(11,2), not DECIMAL(9,2)
+    # (9,2) only allows 7 integer digits before the point; full 9(9)V99 needs 11 total digits).
+    "AMOUNT": (54, 11, "decimal(11,2)"),
 }
 
 
 @pytest.mark.huge
-def test_huge_fixed_file_to_parquet_single_writer() -> None:
+def test_huge_fixed_file_to_parquet_single_writer(tmp_path: Path) -> None:
     mainframe_tools = pytest.importorskip(
         "mainframe_tools",
         reason=(
@@ -34,7 +36,7 @@ def test_huge_fixed_file_to_parquet_single_writer() -> None:
     assert file_size % RECORD_SIZE == 0
     expected_rows = file_size // RECORD_SIZE
 
-    out_dir = root / "data" / "parquet"
+    out_dir = tmp_path / "parquet"
     mainframe_tools.parse_and_write_parquet(
         str(input_path),
         str(out_dir),
@@ -53,4 +55,7 @@ def test_huge_fixed_file_to_parquet_single_writer() -> None:
         pq.read_metadata(p.as_posix()).num_rows for p in shard_files
     )
     assert total_rows == expected_rows
+
+    amt_type = pq.read_schema(shard_files[0].as_posix()).field("AMOUNT").type
+    assert amt_type == pa.decimal128(11, 2), amt_type
 
