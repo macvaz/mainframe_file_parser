@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
-
 import polars as pl
 
 from file_validator.main import main
 
 INPUT_PATH = "data/huge_fixed_size_file.dat"
+OUTPUT_PATH = "data/huge_fixed_size_file.parquet"
 SCHEMA = {
     "FULL_NAME": (0, 50, "string"),
     "YEAR": (50, 4, "integer"),
@@ -24,8 +22,6 @@ def validation_etl(df: pl.LazyFrame) -> pl.LazyFrame:
 
 
 if __name__ == "__main__":
-    with tempfile.TemporaryDirectory(prefix="file_validator_parquet_") as tmpdir:
-        output_path = Path(tmpdir) / "parquet"
-        input_df = main(INPUT_PATH, str(output_path), SCHEMA)
-        validations_df = validation_etl(input_df)
-        print(validations_df.head(10).collect())
+    input_df = main(INPUT_PATH, OUTPUT_PATH, SCHEMA)
+    validations_df = validation_etl(input_df)
+    print(validations_df.head(10).collect())
