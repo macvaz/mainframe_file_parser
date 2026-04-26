@@ -1,4 +1,4 @@
-# file-validator
+# mainframe-validator
 
 Rust + Python project for parsing fixed-size mainframe files and writing Parquet shards.
 
