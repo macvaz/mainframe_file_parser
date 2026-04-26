@@ -17,7 +17,7 @@ SCHEMA = {
 
 def validation_etl(df: pl.LazyFrame) -> pl.LazyFrame:
     return df.with_columns(
-        VALID_NAME=pl.col("FULL_NAME").str.len_bytes() == 8,
+        VALID_NAME=pl.col("FULL_NAME").str.len_bytes() == 9,
         VALID_YEAR=pl.col("YEAR").is_between(1900, 2000),
         VALID_AMOUNT=pl.col("AMOUNT").is_between(0, 672581176.44),
     )
