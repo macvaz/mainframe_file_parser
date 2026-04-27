@@ -22,6 +22,9 @@ def validation_etl(df: pl.LazyFrame) -> pl.LazyFrame:
         VALID_NAME=pl.col("FULL_NAME").str.len_bytes() == 9,
         VALID_YEAR=pl.col("YEAR").is_between(1900, 2000),
         VALID_AMOUNT=pl.col("AMOUNT").is_between(0, 672581176.44),
+        VALID_NAME_2=pl.col("FULL_NAME").str.len_bytes() == 10,
+        VALID_YEAR_2=pl.col("YEAR").is_between(1900, 1950),
+        VALID_AMOUNT_2=pl.col("AMOUNT").is_between(0, 2281176.44),
     )
 
 
@@ -30,11 +33,9 @@ if __name__ == "__main__":
     input_df = main(INPUT_PATH, INTERMEDIATE_OUTPUT_PATH, SCHEMA)
     t1 = time.perf_counter()
     validations_lf = validation_etl(input_df)
-    print(validations_lf.head(10).collect())
     validations_lf.sink_parquet(OUTPUT_PATH)
     t2 = time.perf_counter()
-    print(
-        f"Stage 1 (→ {INTERMEDIATE_OUTPUT_PATH}): {t1 - t0:.3f}s | "
-        f"Stage 2 (validations + {OUTPUT_PATH}): {t2 - t1:.3f}s | "
-        f"Total: {t2 - t0:.3f}s"
-    )
+
+    print(f"Stage 1 ({INTERMEDIATE_OUTPUT_PATH}): {t1 - t0:.3f}s | ")
+    print(f"Stage 2 (validations + {OUTPUT_PATH}): {t2 - t1:.3f}s | ")
+    print(f"Total: {t2 - t0:.3f}s")
