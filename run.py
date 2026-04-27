@@ -7,7 +7,9 @@ import polars as pl
 from file_validator.main import main
 
 INPUT_PATH = "data/huge_fixed_size_file.dat"
-OUTPUT_PATH = "data/huge_fixed_size_file.parquet"
+INTERMEDIATE_OUTPUT_PATH = "data/huge_fixed_size_file.parquet"
+OUTPUT_PATH = "data/huge_fixed_size_file_validations.parquet"
+
 SCHEMA = {
     "FULL_NAME": (0, 50, "string"),
     "YEAR": (50, 4, "integer"),
@@ -25,7 +27,14 @@ def validation_etl(df: pl.LazyFrame) -> pl.LazyFrame:
 
 if __name__ == "__main__":
     t0 = time.perf_counter()
-    input_df = main(INPUT_PATH, OUTPUT_PATH, SCHEMA)
-    validations_df = validation_etl(input_df)
-    print(validations_df.head(10).collect())
-    print(f"main() took {time.perf_counter() - t0:.3f}s")
+    input_df = main(INPUT_PATH, INTERMEDIATE_OUTPUT_PATH, SCHEMA)
+    t1 = time.perf_counter()
+    validations_lf = validation_etl(input_df)
+    print(validations_lf.head(10).collect())
+    validations_lf.sink_parquet(OUTPUT_PATH)
+    t2 = time.perf_counter()
+    print(
+        f"Stage 1 (→ {INTERMEDIATE_OUTPUT_PATH}): {t1 - t0:.3f}s | "
+        f"Stage 2 (validations + {OUTPUT_PATH}): {t2 - t1:.3f}s | "
+        f"Total: {t2 - t0:.3f}s"
+    )

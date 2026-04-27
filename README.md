@@ -1,6 +1,6 @@
 # mainframe-validator
 
-Rust + Python project for parsing fixed-size mainframe files and writing Parquet shards.
+Rust + Python project for parsing fixed-size mainframe files and writing Parquet files with the resulting validations
 
 ## Rust Toolchain Setup
 
@@ -61,7 +61,19 @@ From project root (Rust wheel installed, input data at `data/huge_fixed_size_fil
 uv run run.py
 ```
 
-The script prints how long `main()` took. **Timing:** if `data/huge_fixed_size_file.parquet` does not exist, `main()` finishes in **less than 3 seconds** (Parquet is generated first). If that Parquet file already exists, `main()` finishes in **single-digit milliseconds**.
+## Benchmarking the execution
+
+`run.py` times two stages and prints seconds for each, plus total wall time:
+
+1. **Stage 1** — `main()` converts the fixed-width file to **`INTERMEDIATE_OUTPUT_PATH`** (or skips writing if that path already exists and only sets up a scan).
+2. **Stage 2** — `validation_etl` runs on the LazyFrame, the first 10 rows are collected for printing, then results are written to **`OUTPUT_PATH`**.
+
+| Scenario | Stage 1: convert → `INTERMEDIATE_OUTPUT_PATH` | Stage 2: validations + write `OUTPUT_PATH` | Typical total |
+| --- | --- | --- | --- |
+| Intermediate Parquet **absent** (first conversion) | Rust parses the `.dat` and writes intermediate Parquet; usually the larger part of the run. | Polars validation columns and writing the validation results to disk. | Often **~6.5 s** on a typical dev machine (varies by disk and data). |
+| Intermediate Parquet **present** (reuse) | Near **0 s** — no rewrite; only opens a lazy scan of the existing file. | Same Stage 2 pipeline; usually dominates wall time on repeat runs. | Often **~3 s** (same caveat). |
+
+Use the printed **Stage 1 / Stage 2 / Total** line for authoritative numbers on your machine.
 
 ### Example column validations
 
