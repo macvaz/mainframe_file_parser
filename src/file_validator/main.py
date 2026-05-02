@@ -6,14 +6,14 @@ from pathlib import Path
 
 import polars as pl
 
-from file_validator.types import FixedWidthSchema, MainframeParser
+from file_validator.types import FileSchema, MainframeParser
 from file_validator.utils import get_total_length, scan_parquet_output
 
 
 def main(
     input_path: str,
     output_path: str,
-    schema: FixedWidthSchema,
+    schema: FileSchema,
     parser: MainframeParser,
 ) -> pl.LazyFrame:
     out = Path(output_path)

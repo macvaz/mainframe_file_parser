@@ -12,19 +12,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from file_validator.types import FixedWidthSchema
+from file_validator.types import FileSchema
+from file_validator.utils import PARQUET_OUTPUT_FILENAME
 
 from . import utils
-
-# One Parquet file so :func:`file_validator.utils.scan_parquet_output` still matches
-# ``shard_*.parquet`` in a directory.
-_OUTPUT_NAME = "shard_0.parquet"
 
 
 def parse_and_write_parquet(
     input_path: str,
     output_folder: str,
-    schema_dict: FixedWidthSchema,
+    schema_dict: FileSchema,
     record_size: int,
     rows_per_batch: int,
 ) -> None:
@@ -44,8 +41,8 @@ def parse_and_write_parquet(
     _ = record_size, rows_per_batch
     out = Path(output_folder)
     out.mkdir(parents=True, exist_ok=True)
-    lf = utils.scan_fixed_width_lines_lazy(input_path, schema_dict)
+    lf = utils.parse_file_according_to_schema(input_path, schema_dict)
     lf.sink_parquet(
-        (out / _OUTPUT_NAME).as_posix(),
+        (out / PARQUET_OUTPUT_FILENAME).as_posix(),
         compression="snappy",
     )

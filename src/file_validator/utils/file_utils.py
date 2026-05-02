@@ -7,10 +7,13 @@ from pathlib import Path
 
 import polars as pl
 
-from file_validator.types import FixedWidthSchema
+from file_validator.types import FileSchema
+
+# Single Snappy Parquet file written by the Polars parser (not Rust shard parts).
+PARQUET_OUTPUT_FILENAME = "data.parquet"
 
 
-def get_total_length(schema: FixedWidthSchema, *, line_terminated: bool = False) -> int:
+def get_total_length(schema: FileSchema, *, line_terminated: bool = False) -> int:
     """Fixed bytes per record from column layout ``(offset, length[, type])``.
 
     Returns ``max(offset + length)`` over all fields. If records end with a
@@ -33,9 +36,21 @@ def get_total_length(schema: FixedWidthSchema, *, line_terminated: bool = False)
 
 
 def scan_parquet_output(output_path: Path) -> pl.LazyFrame:
-    """Scan a single Parquet file or a directory of ``shard_*.parquet`` parts."""
+    """Scan parser output: a Parquet file path, or a directory.
+
+    Directories may contain Rust ``shard_*.parquet`` parts or a single Polars
+    ``data.parquet`` file (see :data:`PARQUET_OUTPUT_FILENAME`).
+    """
     if output_path.is_dir():
-        return pl.scan_parquet(str(output_path / "shard_*.parquet"))
+        if any(output_path.glob("shard_*.parquet")):
+            return pl.scan_parquet(str(output_path / "shard_*.parquet"))
+        single = output_path / PARQUET_OUTPUT_FILENAME
+        if single.is_file():
+            return pl.scan_parquet(str(single))
+        raise FileNotFoundError(
+            f"No Parquet output found under {output_path}: "
+            f"expected shard_*.parquet or {PARQUET_OUTPUT_FILENAME}"
+        )
     return pl.scan_parquet(str(output_path))
 
 

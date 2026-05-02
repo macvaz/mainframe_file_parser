@@ -5,9 +5,7 @@ from __future__ import annotations
 from file_validator.types import MainframeParser
 
 from .parser import parse_and_write_parquet
-from .utils import scan_fixed_width_lines_lazy
 
-#: Same protocol as :data:`~file_validator.parsers.rust.file_parser`.
 file_parser: MainframeParser = parse_and_write_parquet
 
-__all__ = ["file_parser", "scan_fixed_width_lines_lazy"]
+__all__ = ["file_parser"]
