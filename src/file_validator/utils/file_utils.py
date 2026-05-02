@@ -7,8 +7,10 @@ from pathlib import Path
 
 import polars as pl
 
+from file_validator.types import FixedWidthSchema
 
-def get_total_length(schema: dict, *, line_terminated: bool = False) -> int:
+
+def get_total_length(schema: FixedWidthSchema, *, line_terminated: bool = False) -> int:
     """Fixed bytes per record from column layout ``(offset, length[, type])``.
 
     Returns ``max(offset + length)`` over all fields. If records end with a

@@ -1,17 +1,12 @@
-"""Helpers for fixed-width parsing and sharded Parquet output."""
+"""Helpers for fixed-width → Parquet via Polars (line-oriented ``scan_csv`` + expressions)."""
 
 from __future__ import annotations
 
-import mmap
-import os
 import re
 from dataclasses import dataclass
-from decimal import Decimal
 from pathlib import Path
-from typing import Any
 
 import polars as pl
-import pyarrow.parquet as pq
 
 from file_validator.types import FixedWidthSchema
 
@@ -81,159 +76,46 @@ def schema_from_dict(schema_dict: FixedWidthSchema) -> list[_ColDef]:
 
 def _polars_dtype(col: _ColDef) -> pl.DataType:
     if col.kind == "string":
-        return pl.String
+        return pl.String()
     if col.kind == "integer":
-        return pl.Int64
+        return pl.Int64()
     if col.kind == "float":
-        return pl.Float64
+        return pl.Float64()
     assert col.kind == "decimal" and col.precision is not None and col.scale is not None
     return pl.Decimal(col.precision, col.scale)
 
 
-def _parse_string(val: bytes | memoryview) -> str:
-    b = val.tobytes() if isinstance(val, memoryview) else val
-    return b.decode("utf-8", errors="replace").strip()
-
-
-def _parse_int(name: str, val: bytes | memoryview) -> int | None:
-    b = val.tobytes() if isinstance(val, memoryview) else val
-    s = b.decode("utf-8", errors="replace").strip()
-    if not s:
-        return None
-    try:
-        return int(s)
-    except ValueError as e:
-        raise ValueError(
-            f"failed parsing integer column {name!r} value {s!r}: {e}"
-        ) from e
-
-
-def _parse_float(name: str, val: bytes | memoryview) -> float | None:
-    b = val.tobytes() if isinstance(val, memoryview) else val
-    s = b.decode("utf-8", errors="replace").strip()
-    if not s:
-        return None
-    try:
-        return float(s)
-    except ValueError as e:
-        raise ValueError(
-            f"failed parsing float column {name!r} value {s!r}: {e}"
-        ) from e
-
-
-def _parse_decimal(
-    name: str, val: bytes | memoryview, precision: int, scale: int
-) -> Decimal | None:
-    b = val.tobytes() if isinstance(val, memoryview) else val
-    s = b.decode("utf-8", errors="replace").strip()
-    if not s:
-        return None
-    if not s.isascii() or not all(c.isdigit() for c in s):
-        raise ValueError(f"decimal column {name!r} expected ASCII digits, got {s!r}")
-    try:
-        unscaled = int(s)
-    except ValueError as e:
-        raise ValueError(
-            f"failed parsing decimal column {name!r} value {s!r}: {e}"
-        ) from e
-    base = 10**precision
-    max_abs = base - 1
-    if abs(unscaled) > max_abs:
-        raise ValueError(
-            f"decimal column {name!r} value unscaled={unscaled} exceeds "
-            f"DECIMAL({precision},{scale}) (|max| = {max_abs})"
-        )
-    return Decimal(unscaled) / (Decimal(10) ** scale)
-
-
-def _cell(col: _ColDef, slab: bytes | memoryview) -> Any:
+def _field_expr(raw: str, col: _ColDef) -> pl.Expr:
+    """Slice fixed-width text fields and cast in Polars (Rust engine), no Python UDFs."""
+    field = pl.col(raw).str.slice(col.start, col.length).str.strip_chars()
     if col.kind == "string":
-        return _parse_string(slab)
-    if col.kind == "integer":
-        return _parse_int(col.name, slab)
-    if col.kind == "float":
-        return _parse_float(col.name, slab)
-    return _parse_decimal(col.name, slab, col.precision or 0, col.scale or 0)
+        return field.alias(col.name)
+    return field.cast(_polars_dtype(col), strict=False).alias(col.name)
 
 
-def write_shard(
-    mm: mmap.mmap,
-    *,
-    path: Path,
-    col_defs: list[_ColDef],
-    record_size: int,
-    rows_per_batch: int,
-    start_rec: int,
-    end_rec: int,
-) -> None:
-    start_byte = start_rec * record_size
-    n_rows = end_rec - start_rec
-
-    if n_rows == 0:
-        empty = pl.DataFrame(
-            {c.name: pl.Series(c.name, [], dtype=_polars_dtype(c)) for c in col_defs}
-        )
-        empty.write_parquet(path, compression="snappy")
-        return
-
-    writer: pq.ParquetWriter | None = None
-    row = 0
-    try:
-        while row < n_rows:
-            batch_n = min(rows_per_batch, n_rows - row)
-            cols_data: dict[str, list[Any]] = {c.name: [] for c in col_defs}
-            for _ in range(batch_n):
-                abs_start = start_byte + row * record_size
-                rec = mm[abs_start : abs_start + record_size]
-                row += 1
-                for c in col_defs:
-                    slab = rec[c.start : c.start + c.length]
-                    cols_data[c.name].append(_cell(c, slab))
-            df = pl.DataFrame(
-                {
-                    c.name: pl.Series(c.name, cols_data[c.name], dtype=_polars_dtype(c))
-                    for c in col_defs
-                }
-            )
-            table = df.to_arrow()
-            if writer is None:
-                writer = pq.ParquetWriter(
-                    path.as_posix(), table.schema, compression="snappy"
-                )
-            writer.write_table(table)
-    finally:
-        if writer is not None:
-            writer.close()
+def column_exprs_from_col_defs(
+    raw_column: str, col_defs: list[_ColDef]
+) -> list[pl.Expr]:
+    """Build ``with_columns`` expressions: fixed-width layout → typed columns."""
+    return [_field_expr(raw_column, c) for c in col_defs]
 
 
-def write_shard_range(
-    input_path: str,
-    output_shard_path: str,
-    col_defs: list[_ColDef],
-    record_size: int,
-    rows_per_batch: int,
-    start_rec: int,
-    end_rec: int,
-) -> None:
-    """Memory-map ``input_path`` and write a single shard file (for worker processes)."""
-    with open(input_path, "rb") as f:
-        mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
-        try:
-            write_shard(
-                mm,
-                path=Path(output_shard_path),
-                col_defs=col_defs,
-                record_size=record_size,
-                rows_per_batch=rows_per_batch,
-                start_rec=start_rec,
-                end_rec=end_rec,
-            )
-        finally:
-            mm.close()
+def scan_fixed_width_lines_lazy(
+    path: str | Path, schema_dict: FixedWidthSchema
+) -> pl.LazyFrame:
+    """Scan a **line-delimited** fixed-width text file (one physical line per record).
 
-
-def cpu_count() -> int:
-    try:
-        return len(os.sched_getaffinity(0))
-    except (AttributeError, OSError):
-        return os.cpu_count() or 1
+    Uses :func:`polars.scan_csv` with a single ``raw`` column (separator that does not
+    appear in the data), then applies field slices and native ``cast`` expressions.
+    Polars returns each line **without** the trailing newline; field ``(start, length)``
+    offsets refer to the payload bytes.
+    """
+    col_defs = schema_from_dict(schema_dict)
+    lf = pl.scan_csv(
+        str(Path(path).resolve()),
+        has_header=False,
+        new_columns=["raw"],
+        separator="\x00",
+        truncate_ragged_lines=True,
+    )
+    return lf.with_columns(column_exprs_from_col_defs("raw", col_defs)).drop("raw")

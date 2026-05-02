@@ -61,6 +61,10 @@ From project root (Rust wheel installed, input data at `data/huge_fixed_size_fil
 uv run run.py
 ```
 
+### Input file size (from notebook)
+
+The huge sample matches **32,540,000** records: `notebooks/exploration.ipynb` cell 1 runs `pl.scan_parquet("data/huge_fixed_size_file.parquet/*").count().collect()`, which reports 32,540,000 rows for each of `FULL_NAME`, `YEAR`, and `AMOUNT` (same row count as the source fixed-width file once converted).
+
 ## Benchmarking the execution
 
 `run.py` times two stages and prints seconds for each, plus total wall time:
