@@ -19,6 +19,11 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.pyright]
+stubPath = "typings"
+include = ["src"]
+pythonVersion = "3.12"
+
 [tool.pytest.ini_options]
 testpaths = ["test"]
 pythonpath = ["src"]

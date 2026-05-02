@@ -68,6 +68,19 @@ uv run run.py
 1. **Stage 1** — `main()` converts the fixed-width file to **`INTERMEDIATE_OUTPUT_PATH`** (or skips writing if that path already exists and only sets up a scan).
 2. **Stage 2** — `validation_etl` runs on the LazyFrame, the first 10 rows are collected for printing, then results are written to **`OUTPUT_PATH`**.
 
+### Rust extension vs Polars (`file_parser`) — fixed-width → Parquet only
+
+Both backends shard work across all CPU cores (Rust via rayon, Polars via a process pool). The Polars path still spends most of its time in Python-level parsing and building column data, so wall time is much higher than the native extension for the same input.
+
+| Backend | Time (same workload, same machine) | CPU during conversion |
+| --- | ---: | --- |
+| **Rust** (`file_validator.parsers.rust`) | **~6 s** | High utilization across cores |
+| **Polars** (`file_validator.parsers.polars`) | **~50 s** | ~100% on all cores |
+
+These figures are representative on one benchmark run (same fixed-width input and schema as `run.py`). Use them as an order-of-magnitude guide; absolute seconds vary by hardware, file size, and I/O.
+
+### Stage 1 / Stage 2 totals (`run.py`)
+
 | Scenario | Stage 1: convert → `INTERMEDIATE_OUTPUT_PATH` | Stage 2: validations + write `OUTPUT_PATH` | Typical total |
 | --- | --- | --- | --- |
 | Intermediate Parquet **absent** (first conversion) | Rust parses the `.dat` and writes intermediate Parquet; usually the larger part of the run. | Polars validation columns and writing the validation results to disk. | Often **~6.5 s** on a typical dev machine (varies by disk and data). |

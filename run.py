@@ -5,6 +5,8 @@ import time
 import polars as pl
 
 from file_validator.main import main
+from file_validator.parsers.rust import file_parser
+from file_validator.utils import remove_file_or_tree
 
 INPUT_PATH = "data/huge_fixed_size_file.dat"
 INTERMEDIATE_OUTPUT_PATH = "data/huge_fixed_size_file.parquet"
@@ -30,12 +32,16 @@ def validation_etl(df: pl.LazyFrame) -> pl.LazyFrame:
 
 if __name__ == "__main__":
     t0 = time.perf_counter()
-    input_df = main(INPUT_PATH, INTERMEDIATE_OUTPUT_PATH, SCHEMA)
+    input_df = main(INPUT_PATH, INTERMEDIATE_OUTPUT_PATH, SCHEMA, file_parser)
     t1 = time.perf_counter()
+
+    print(f"Stage 1 (Conversion to parquet) COMPLETED IN: {t1 - t0:.3f}s")
+
     validations_lf = validation_etl(input_df)
     validations_lf.sink_parquet(OUTPUT_PATH)
     t2 = time.perf_counter()
 
-    print(f"Stage 1 ({INTERMEDIATE_OUTPUT_PATH}): {t1 - t0:.3f}s | ")
-    print(f"Stage 2 (validations + {OUTPUT_PATH}): {t2 - t1:.3f}s | ")
+    print(f"Stage 2 (Validation calculations) COMPLETED IN: {t2 - t1:.3f}s")
     print(f"Total: {t2 - t0:.3f}s")
+
+    remove_file_or_tree(INTERMEDIATE_OUTPUT_PATH)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import polars as pl
@@ -34,3 +35,12 @@ def scan_parquet_output(output_path: Path) -> pl.LazyFrame:
     if output_path.is_dir():
         return pl.scan_parquet(str(output_path / "shard_*.parquet"))
     return pl.scan_parquet(str(output_path))
+
+
+def remove_file_or_tree(path: str | Path) -> None:
+    """Remove a file or directory tree at ``path`` if it exists; no-op if missing."""
+    p = Path(path)
+    if p.is_dir():
+        shutil.rmtree(p)
+    elif p.is_file():
+        p.unlink()
