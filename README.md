@@ -74,20 +74,20 @@ The huge sample matches **32,540,000** records: `notebooks/exploration.ipynb` ce
 
 ### Rust extension vs Polars (`file_parser`) — fixed-width → Parquet only
 
-Both backends shard work across all CPU cores (Rust via rayon, Polars via a process pool). The Polars path still spends most of its time in Python-level parsing and building column data, so wall time is much higher than the native extension for the same input.
+Stage 1 uses either the **Rust** extension (rayon-parallel) or the **Polars** path (lazy `scan_csv` + native `str.slice` / `cast`, sink to `data.parquet`). On the same input and machine, **both backends take about the same wall time** for conversion here—confirm with your own **`run.py`** timings.
 
 | Backend | Time (same workload, same machine) | CPU during conversion |
 | --- | ---: | --- |
-| **Rust** (`file_validator.parsers.rust`) | **~6 s** | High utilization across cores |
-| **Polars** (`file_validator.parsers.polars`) | **~50 s** | ~100% on all cores |
+| **Rust** (`file_validator.parsers.rust`) | **~6 s** (typical) | High utilization across cores |
+| **Polars** (`file_validator.parsers.polars`) | **~6 s** (typical) | Comparable for this pipeline |
 
-These figures are representative on one benchmark run (same fixed-width input and schema as `run.py`). Use them as an order-of-magnitude guide; absolute seconds vary by hardware, file size, and I/O.
+Figures are indicative (same fixed-width input and schema as `run.py`); absolute seconds vary by hardware, disk, and file size.
 
 ### Stage 1 / Stage 2 totals (`run.py`)
 
 | Scenario | Stage 1: convert → `INTERMEDIATE_OUTPUT_PATH` | Stage 2: validations + write `OUTPUT_PATH` | Typical total |
 | --- | --- | --- | --- |
-| Intermediate Parquet **absent** (first conversion) | Rust parses the `.dat` and writes intermediate Parquet; usually the larger part of the run. | Polars validation columns and writing the validation results to disk. | Often **~6.5 s** on a typical dev machine (varies by disk and data). |
+| Intermediate Parquet **absent** (first conversion) | Parser (Rust or Polars) reads the `.dat` and writes intermediate Parquet; usually the larger part of the run. | Polars validation columns and writing the validation results to disk. | Often **~6.5 s** on a typical dev machine (varies by disk and data). |
 | Intermediate Parquet **present** (reuse) | Near **0 s** — no rewrite; only opens a lazy scan of the existing file. | Same Stage 2 pipeline; usually dominates wall time on repeat runs. | Often **~3 s** (same caveat). |
 
 Use the printed **Stage 1 / Stage 2 / Total** line for authoritative numbers on your machine.
