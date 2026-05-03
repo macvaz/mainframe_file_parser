@@ -2,7 +2,7 @@
 
 use pyo3::prelude::*;
 use pyo3::exceptions::PyRuntimeError;
-use pyo3::types::PyDict;
+use pyo3::types::{PyAnyMethods, PyList};
 use std::fs::File;
 use std::sync::Arc;
 use std::path::Path;
@@ -28,54 +28,6 @@ enum ColType {
 }
 
 impl ColType {
-    fn from_str(raw: &str) -> Result<Self, String> {
-        let lower = raw.trim().to_ascii_lowercase();
-        if let Some(rest) = lower.strip_prefix("decimal") {
-            let rest = rest.trim();
-            if rest.is_empty() {
-                return Err(
-                    "decimal requires precision and scale, e.g. decimal(11,2)".to_string(),
-                );
-            }
-            let inner = rest
-                .strip_prefix('(')
-                .and_then(|s| s.strip_suffix(')'))
-                .ok_or_else(|| {
-                    format!("invalid decimal type '{raw}', use decimal(precision,scale)")
-                })?;
-            let (p_str, s_str) = inner.split_once(',').ok_or_else(|| {
-                format!("invalid decimal type '{raw}', use decimal(precision,scale)")
-            })?;
-            let precision: u8 = p_str
-                .trim()
-                .parse()
-                .map_err(|_| format!("invalid decimal precision in '{raw}'"))?;
-            let scale: i8 = s_str
-                .trim()
-                .parse()
-                .map_err(|_| format!("invalid decimal scale in '{raw}'"))?;
-            if precision == 0 || precision > 38 {
-                return Err(format!(
-                    "decimal precision must be 1..=38, got {precision} in '{raw}'"
-                ));
-            }
-            if scale < 0 || scale as i32 > precision as i32 {
-                return Err(format!(
-                    "decimal scale must be 0..=precision, got scale={scale} precision={precision} in '{raw}'"
-                ));
-            }
-            return Ok(Self::Decimal { precision, scale });
-        }
-        match lower.as_str() {
-            "string" | "str" | "text" | "utf8" => Ok(Self::String),
-            "integer" | "int" | "int64" => Ok(Self::Integer),
-            "float" | "double" | "float64" => Ok(Self::Float),
-            other => Err(format!(
-                "unsupported type '{other}', expected one of: string|integer|float|decimal(p,s)"
-            )),
-        }
-    }
-
     fn to_arrow_type(&self) -> DataType {
         match self {
             Self::String => DataType::Utf8,
@@ -201,34 +153,71 @@ impl ColBuilder {
     }
 }
 
+/// Maps Python :class:`ColumnDefinition` fields (``kind``, ``precision``, ``scale``) to ``ColType``.
+fn col_type_from_column_definition(item: &Bound<'_, PyAny>) -> PyResult<ColType> {
+    let kind: String = item.getattr("kind")?.extract()?;
+    let precision_opt: Option<u64> = item.getattr("precision")?.extract()?;
+    let scale_opt: Option<i64> = item.getattr("scale")?.extract()?;
+    match kind.as_str() {
+        "string" => Ok(ColType::String),
+        "integer" => Ok(ColType::Integer),
+        "float" => Ok(ColType::Float),
+        "decimal" => {
+            let p_u64 = precision_opt.ok_or_else(|| {
+                PyRuntimeError::new_err("decimal column missing precision")
+            })?;
+            let s_i64 = scale_opt.ok_or_else(|| PyRuntimeError::new_err("decimal column missing scale"))?;
+            let precision: u8 = p_u64.try_into().map_err(|_| {
+                PyRuntimeError::new_err(format!(
+                    "decimal precision must fit in u8, got {p_u64}"
+                ))
+            })?;
+            let scale: i8 = s_i64.try_into().map_err(|_| {
+                PyRuntimeError::new_err(format!("decimal scale must fit in i8, got {s_i64}"))
+            })?;
+            if precision == 0 || precision > 38 {
+                return Err(PyRuntimeError::new_err(format!(
+                    "decimal precision must be 1..=38, got {precision}"
+                )));
+            }
+            if scale < 0 || scale as i32 > precision as i32 {
+                return Err(PyRuntimeError::new_err(format!(
+                    "decimal scale must be 0..=precision, got scale={scale} precision={precision}"
+                )));
+            }
+            Ok(ColType::Decimal { precision, scale })
+        }
+        other => Err(PyRuntimeError::new_err(format!(
+            "unsupported column kind {other:?}, expected string|integer|float|decimal"
+        ))),
+    }
+}
+
 #[pyfunction]
 fn parse_and_write_parquet(
     input_path: String,
     output_folder: String,
-    schema_dict: &Bound<'_, PyDict>,
+    schema: &Bound<'_, PyAny>,
     record_size: usize,
     rows_per_batch: usize, // Internal batching for memory management
 ) -> PyResult<()> {
     std::fs::create_dir_all(&output_folder).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-    // 1. Setup Schema
+    // 1. Setup Schema — ``schema`` is ``list[ColumnDefinition]`` (see ``file_validator.types``).
+    let list = schema.downcast::<PyList>().map_err(|_| {
+        PyRuntimeError::new_err("schema must be a list of ColumnDefinition")
+    })?;
+    if list.is_empty() {
+        return Err(PyRuntimeError::new_err(
+            "schema must contain at least one ColumnDefinition",
+        ));
+    }
     let mut col_defs = Vec::new();
     let mut fields = Vec::new();
-    for (name, pos) in schema_dict.iter() {
-        let name_str: String = name.extract()?;
-        let (start, len, col_type) = if let Ok(pos_typed) = pos.extract::<(usize, usize, String)>()
-        {
-            (
-                pos_typed.0,
-                pos_typed.1,
-                ColType::from_str(&pos_typed.2).map_err(PyRuntimeError::new_err)?,
-            )
-        } else if let Ok(pos_untyped) = pos.extract::<(usize, usize)>() {
-            (pos_untyped.0, pos_untyped.1, ColType::String)
-        } else {
-            return Err(PyRuntimeError::new_err(
-                "schema values must be (start, len) or (start, len, type)",
-            ));
-        };
+    for item in list.iter() {
+        let name_str: String = item.getattr("name")?.extract()?;
+        let start: usize = item.getattr("start")?.extract()?;
+        let len: usize = item.getattr("length")?.extract()?;
+        let col_type = col_type_from_column_definition(&item)?;
         col_defs.push(ColDef {
             name: name_str,
             start,

@@ -32,7 +32,7 @@ class MainframeParser(Protocol):
         self,
         input_path: str,
         output_folder: str,
-        schema_dict: FileSchema,
+        schema: FileSchema,
         record_size: int,
         rows_per_batch: int,
     ) -> None: ...

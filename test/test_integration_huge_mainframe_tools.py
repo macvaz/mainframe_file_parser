@@ -6,15 +6,15 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
+from file_validator.types import ColumnDefinition
 
 RECORD_SIZE = 66
-SCHEMA_MAP = {
-    "FULL_NAME": (0, 50, "string"),
-    "YEAR": (50, 4, "integer"),
-    # PIC 9(9)V99: 11 digit positions, 2 implied decimals → DECIMAL(11,2), not DECIMAL(9,2)
-    # (9,2) only allows 7 integer digits before the point; full 9(9)V99 needs 11 total digits).
-    "AMOUNT": (54, 11, "decimal(11,2)"),
-}
+# Same layout as run.py / copybook: PIC 9(9)V99 → 11 positions, 2 implied decimals.
+SCHEMA: list[ColumnDefinition] = [
+    ColumnDefinition("FULL_NAME", 0, 50, "string", None, None),
+    ColumnDefinition("YEAR", 50, 4, "integer", None, None),
+    ColumnDefinition("AMOUNT", 54, 11, "decimal", 11, 2),
+]
 
 
 @pytest.mark.huge
@@ -40,7 +40,7 @@ def test_huge_fixed_file_to_parquet_single_writer(tmp_path: Path) -> None:
     mainframe_tools.parse_and_write_parquet(
         str(input_path),
         str(out_dir),
-        SCHEMA_MAP,
+        SCHEMA,
         RECORD_SIZE,
         500_000,
     )
