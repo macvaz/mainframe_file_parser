@@ -89,8 +89,9 @@ Polars tends to saturate all available cpus so it can produce thermal throttling
 ```bash
 grep . /sys/devices/system/cpu/cpu*/thermal_throttle/*_count
 ```
+Use s-tui for monitoring cores temperuate and fan speed. 
 
-To control it effectivaly, set the number of threads that polars will use with this environment variable:
+To control thermal thottling, set the number of threads that polars will use with this environment variable:
 
 ```bash
 export POLARS_MAX_THREADS=$(($(nproc) - 2))
