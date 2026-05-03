@@ -49,7 +49,7 @@ def _polars_dtype(col: ColumnDefinition) -> pl.DataType:
     return pl.Decimal(col.precision, col.scale)
 
 
-def _field_expr(raw: str, col: ColumnDefinition) -> pl.Expr:
+def _column_expr(raw: str, col: ColumnDefinition) -> pl.Expr:
     """Slice fixed-width text fields and cast in Polars (Rust engine), no Python UDFs."""
     field = pl.col(raw).str.slice(col.start, col.length).str.strip_chars()
     if col.kind == "string":
@@ -57,43 +57,13 @@ def _field_expr(raw: str, col: ColumnDefinition) -> pl.Expr:
     return field.cast(_polars_dtype(col), strict=False).alias(col.name)
 
 
-def column_exprs_from_col_defs(
-    raw_column: str, col_defs: list[ColumnDefinition]
-) -> list[pl.Expr]:
+def column_exprs_from_schema(raw_column: str, schema: FileSchema) -> list[pl.Expr]:
     """Build ``with_columns`` expressions: fixed-width layout → typed columns."""
-    return [_field_expr(raw_column, c) for c in col_defs]
-
-
-def get_column_definitions_from_schema(
-    schema_dict: FileSchema,
-) -> list[ColumnDefinition]:
-    cols: list[ColumnDefinition] = []
-    for name, pos in schema_dict.items():
-        if isinstance(pos, tuple) and len(pos) == 3:
-            start, ln, t = pos
-            kind, prec, sc = _type_from_str(str(t))
-            cols.append(
-                ColumnDefinition(
-                    str(name),
-                    int(start),
-                    int(ln),
-                    kind,
-                    precision=prec,
-                    scale=sc,
-                )
-            )
-        elif isinstance(pos, tuple) and len(pos) == 2:
-            start, ln = pos
-            cols.append(
-                ColumnDefinition(str(name), int(start), int(ln), "string", None, None)
-            )
-        else:
-            raise TypeError("schema values must be (start, len) or (start, len, type)")
-    return cols
+    return [_column_expr(raw_column, c) for c in schema]
 
 
 def parse_file_according_to_schema(
-    path: str | Path, schema_dict: FileSchema
+    path: str | Path, schema: FileSchema
 ) -> pl.LazyFrame:
     """Lazy pipeline: file → rows, each physical line parsed per ``schema_dict``.
 
@@ -102,7 +72,6 @@ def parse_file_according_to_schema(
     Polars returns each line **without** the trailing newline; field ``(start, length)``
     offsets refer to the payload bytes.
     """
-    col_defs = get_column_definitions_from_schema(schema_dict)
     lf = pl.scan_csv(
         str(Path(path).resolve()),
         has_header=False,
@@ -110,4 +79,4 @@ def parse_file_according_to_schema(
         separator="\x00",
         truncate_ragged_lines=True,
     )
-    return lf.with_columns(column_exprs_from_col_defs("raw", col_defs)).drop("raw")
+    return lf.with_columns(column_exprs_from_schema("raw", schema)).drop("raw")

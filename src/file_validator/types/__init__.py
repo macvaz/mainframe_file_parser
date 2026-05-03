@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Protocol, TypeAlias
-
-ColumnSpec: TypeAlias = tuple[int, int, str]
-FileSchema: TypeAlias = Mapping[str, ColumnSpec]
 
 
 @dataclass(frozen=True)
@@ -18,6 +14,9 @@ class ColumnDefinition:
     kind: str
     precision: int | None = None
     scale: int | None = None
+
+
+FileSchema: TypeAlias = list[ColumnDefinition]
 
 
 class MainframeParser(Protocol):
@@ -41,7 +40,6 @@ class MainframeParser(Protocol):
 
 __all__ = [
     "ColumnDefinition",
-    "ColumnSpec",
     "FileSchema",
     "MainframeParser",
 ]

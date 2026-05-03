@@ -21,7 +21,7 @@ from . import utils
 def parse_and_write_parquet(
     input_path: str,
     output_folder: str,
-    schema_dict: FileSchema,
+    schema: FileSchema,
     record_size: int,
     rows_per_batch: int,
 ) -> None:
@@ -41,7 +41,7 @@ def parse_and_write_parquet(
     _ = record_size, rows_per_batch
     out = Path(output_folder)
     out.mkdir(parents=True, exist_ok=True)
-    lf = utils.parse_file_according_to_schema(input_path, schema_dict)
+    lf = utils.parse_file_according_to_schema(input_path, schema)
     lf.sink_parquet(
         (out / PARQUET_OUTPUT_FILENAME).as_posix(),
         compression="snappy",
