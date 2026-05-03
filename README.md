@@ -84,6 +84,18 @@ uv run python bin/generate_huge_ascii_file.py \
   --seed 12345
 ```
 
+Polars tends to saturate all available cpus so it can produce thermal throttling (specially in laptops) after several runs:
+
+```bash
+grep . /sys/devices/system/cpu/cpu*/thermal_throttle/*_count
+```
+
+To control it effectivaly, set the number of threads that polars will use with this environment variable:
+
+```bash
+export POLARS_MAX_THREADS=$(($(nproc) - 2))
+```
+
 After generation, point `run.py` at the same path as `INPUT_PATH` (or overwrite `data/huge_fixed_size_file.dat` so the default matches).
 
 ## Run the example script
