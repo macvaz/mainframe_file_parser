@@ -53,6 +53,39 @@ uv run python -c "import mainframe_tools; print(hasattr(mainframe_tools, 'parse_
 
 Expected output: `True`
 
+## Generate the huge fixed-width input file
+
+The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width ASCII file (one record per line, payload + newline) from a **COBOL copybook**. Field positions and types are read with `file_validator.utils.cobol.get_schema_from_copybook`; **random values are chosen only from column types** (`string`, `integer`, `decimal`), not from field names. The copybook must only contain PICs that map to those three kinds (for example `X(n)`, `9(n)`, and implied-decimal `9…V99` numerics).
+
+**Requirements:** project root, `src` on `PYTHONPATH` (or use the examples below), and enough free disk space (default output is at least **2 GiB**).
+
+| Argument / option | Description |
+| --- | --- |
+| `copybook` | Path to the `.cpy` file (elementary `PIC` clauses). |
+| `output` | Path of the generated `.dat` file (e.g. `data/huge_fixed_size_file.dat`). |
+| `--target-bytes` | Minimum total file size in bytes (default: `2147483648`, i.e. 2 GiB; values below that are rejected). |
+| `--seed` | RNG seed for reproducible records (default: `42`). |
+
+**Example** using the repository fixture copybook (65-byte payload + newline per record):
+
+```bash
+uv run python bin/generate_huge_ascii_file.py \
+  test/fixtures/sample_file_record.cpy \
+  data/huge_fixed_size_file.dat
+```
+
+**Example** with your own copybook and explicit size/seed:
+
+```bash
+uv run python bin/generate_huge_ascii_file.py \
+  path/to/YOUR.cpy \
+  data/my_huge.dat \
+  --target-bytes $((3 * 1024 ** 3)) \
+  --seed 12345
+```
+
+After generation, point `run.py` at the same path as `INPUT_PATH` (or overwrite `data/huge_fixed_size_file.dat` so the default matches).
+
 ## Run the example script
 
 From project root (Rust wheel installed, input data at `data/huge_fixed_size_file.dat` as in `run.py`):

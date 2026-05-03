@@ -5,7 +5,7 @@ import time
 import polars as pl
 
 from file_validator.main import main
-from file_validator.parsers.rust import file_parser
+from file_validator.parsers.polars import file_parser
 from file_validator.utils import get_schema_from_copybook, remove_file_or_tree
 
 INPUT_PATH = "data/huge_fixed_size_file.dat"
