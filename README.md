@@ -1,57 +1,6 @@
 # mainframe-validator
 
-Rust + Python project for parsing fixed-size mainframe files and writing Parquet files with the resulting validations
-
-## Rust Toolchain Setup
-
-### 1) Install Rust (recommended: rustup)
-
-```bash
-curl https://sh.rustup.rs -sSf | sh -y
-source "$HOME/.cargo/env"
-```
-
-### 2) Verify toolchain
-
-```bash
-rustc --version
-cargo --version
-```
-
-### 3) Create/sync Python environment
-
-```bash
-uv sync --group dev
-```
-
-This installs development tools including `maturin`.
-
-## Build the Rust Python Extension
-
-From project root:
-
-```bash
-source "$HOME/.cargo/env"
-source .venv/bin/activate
-maturin build --release --manifest-path rust/Cargo.toml -o rust/target/wheels
-uv pip install --python .venv/bin/python --reinstall --no-deps \
-  rust/target/wheels/mainframe_tools-*.whl
-```
-
-For simplicity, there is a shell script in bin for automating building the rust extension:
-
-```bash
-bin/build_rust_extension.sh
-```
-
-
-## Verify Import
-
-```bash
-uv run python -c "import mainframe_tools; print(hasattr(mainframe_tools, 'parse_and_write_parquet'))"
-```
-
-Expected output: `True`
+Pure Python project (using rust-based python libraries) for parsing fixed-size mainframe files and writing Parquet files with the resulting validations
 
 ## Generate the huge fixed-width input file
 
