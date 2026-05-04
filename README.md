@@ -69,7 +69,7 @@ Two different parsers have been implemented:
   * In native Rust, a platform-dependent high-performing programing language
   * In pure python using polars 
 
-According to experimental executions and benchmarkings, the execution wall time is the same between both implementations. Without any doubt, the python-based implementation is way simpler and more mantainable. No need to code in pure rust to get high-performing execution time.
+According to experimental executions and benchmarkings, the execution wall time is the same between both implementations. Without any doubt, **the python-based implementation is way simpler and more mantainable. No need to code in pure rust to get high-performing execution time**.
 
 | Backend | Time (same workload, same machine) | CPU during conversion |
 | --- | ---: | --- |
