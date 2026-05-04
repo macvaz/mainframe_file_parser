@@ -1,6 +1,8 @@
 # mainframe-validator
 
-High-performing Python-based project for parsing fixed-size mainframe files and writing Parquet files with the resulting validations. 
+High-performing Python-based project for parsing fixed-width mainframe files. This is a general pattern in reg tech projects (Regulatory Technologies). The data pipeline is:
+  * Convert fixed-length file into a tabular analytical file (Parquet) and store it into disk
+  * Applying all the validations of the input file (each validation is an additional column of the dataframe computed in parallel)
 
 It uses open-source dataframe python libraries written in rust for high performance (polars) reusing state-of-the-art technologies for fast analytics (Apache Arraw, SIMD vectorized instructions, etc)
 
