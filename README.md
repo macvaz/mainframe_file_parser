@@ -6,7 +6,7 @@ The data pipeline is the following:
   * Convert fixed-length file into a tabular analytical file (Parquet) and store it into disk
   * Applying a set of validation rules to the input file (each validation is an additional column of the dataframe computed in parallel with a boolean value)
 
-It uses open-source analytical python libraries written in Rust for high performance (polars) enabled with state-of-the-art technologies for fast analytics like
+It uses open-source high-performing analytical Python libraries (written in Rust) like polars, enabled with state-of-the-art technologies for fast analytics like
   - Apache Arrow
   - SIMD vectorized cpu instructions
 
