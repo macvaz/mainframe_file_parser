@@ -1,10 +1,19 @@
 # mainframe-validator
 
-High-performing Python-based project for parsing fixed-width mainframe files. This is a general pattern in reg tech projects (Regulatory Technologies). The data pipeline is:
-  * Convert fixed-length file into a tabular analytical file (Parquet) and store it into disk
-  * Applying all the validations of the input file (each validation is an additional column of the dataframe computed in parallel)
+High-performing Python-based project for parsing fixed-width mainframe files. This is a general pattern in reg tech projects (Regulatory Technologies). 
 
-It uses open-source dataframe python libraries written in rust for high performance (polars) reusing state-of-the-art technologies for fast analytics (Apache Arraw, SIMD vectorized instructions, etc)
+The data pipeline is the following:
+  * Convert fixed-length file into a tabular analytical file (Parquet) and store it into disk
+  * Applying a set of validation rules to the input file (each validation is an additional column of the dataframe computed in parallel with a boolean value)
+
+It uses open-source analytical python libraries written in Rust for high performance (polars) enabled with state-of-the-art technologies for fast analytics like
+  - Apache Arrow
+  - SIMD vectorized cpu instructions
+
+For implementing the CI pipelines, mainstream open-source development tools are used from the astral.sh offering:
+  - uv (project management + dependency management)
+  - ruff (linter and formater)
+  - ty (fast type checker)
 
 ## Generate the huge fixed-width input file
 
