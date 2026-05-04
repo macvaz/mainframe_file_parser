@@ -34,16 +34,16 @@ uv run python bin/generate_huge_ascii_file.py \
   test/fixtures/sample_file_record.cpy \
   data/huge_fixed_size_file.dat
 ```
-
-**Example** with your own copybook and explicit size/seed:
+The copybook used for generating the sample data is the following:
 
 ```bash
-uv run python bin/generate_huge_ascii_file.py \
-  path/to/YOUR.cpy \
-  data/my_huge.dat \
-  --target-bytes $((3 * 1024 ** 3)) \
-  --seed 12345
+       01  FILE-RECORD.
+           05  FULL-NAME                  PIC X(50).
+           05  YEAR                       PIC 9(4).
+           05  AMOUNT                     PIC 9(09)V99.
 ```
+
+
 ## Run the example script
 
 From project root (Rust wheel installed, input data at `data/huge_fixed_size_file.dat` as in `run.py`):
