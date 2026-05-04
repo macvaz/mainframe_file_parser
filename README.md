@@ -1,6 +1,6 @@
 # mainframe-validator
 
-Pure Python project (using rust-based python libraries) for parsing fixed-size mainframe files and writing Parquet files with the resulting validations
+High performing Python-based project for parsing fixed-size mainframe files and writing Parquet files with the resulting validations. It used open-source dataframe python libraries written in rust for high performance.
 
 ## Generate the huge fixed-width input file
 
