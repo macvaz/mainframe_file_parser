@@ -78,15 +78,6 @@ According to experimental executions and benchmarkings, the execution wall time 
 
 Figures are indicative (same fixed-width input and schema as `run.py`); absolute seconds vary by hardware, disk, and file size.
 
-### Stage 1 / Stage 2 totals (`run.py`)
-
-| Scenario | Stage 1: convert → `INTERMEDIATE_OUTPUT_PATH` | Stage 2: validations + write `OUTPUT_PATH` | Typical total |
-| --- | --- | --- | --- |
-| Intermediate Parquet **absent** (first conversion) | Parser (Rust or Polars) reads the `.dat` and writes intermediate Parquet; usually the larger part of the run. | Polars validation columns and writing the validation results to disk. | Often **~6.5 s** on a typical dev machine (varies by disk and data). |
-| Intermediate Parquet **present** (reuse) | Near **0 s** — no rewrite; only opens a lazy scan of the existing file. | Same Stage 2 pipeline; usually dominates wall time on repeat runs. | Often **~6 s** . |
-
-Use the printed **Stage 1 / Stage 2 / Total** line for authoritative numbers on your machine.
-
 ## Run Tests
 
 Run default tests (huge test excluded by default):
