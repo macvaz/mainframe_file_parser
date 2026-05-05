@@ -4,13 +4,13 @@ High-performing Python-based project for parsing fixed-width mainframe files. Th
 
 ## Goal
 
-According to many technical assessments, [rust](https://niklas-heer.github.io/speed-comparison/) is well-known as one of fastest programming languages in execution time. [Python](https://niklas-heer.github.io/speed-comparison/) is also known as one of the slowests.
+According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), rust is well-known as one of fastest programming languages in execution time. [Python](https://niklas-heer.github.io/speed-comparison/) is also known as one of the slowests.
 
 The main goal of this repo is to benchmark two different implementations:
-* a [Python](src/file_validator/parsers/polars/parser.py) parser (uses polars library)
+* a [Python](src/file_validator/parsers/polars/parser.py) parser (based on **polars** analytical library)
 * a [Rust](rust/src/lib.rs) parser
 
-## Code
+## Parsing logic
 
 The data pipeline is the same for both implementations:
   * Convert fixed-length file into a tabular analytical file (Parquet) and store it into disk
@@ -22,10 +22,10 @@ Both versions rely on open-source high-performing analytical libraries, enabling
 
 ## CI pipelines
 
-For implementing the CI pipelines, mainstream open-source development tools are used from the [astral.sh](https://astral.sh) offering:
-  - uv: project management + dependency management
-  - ruff: linter and code formatter
-  - ty: fast type checker
+For implementing the CI pipelines, mainstream open-source development tools are used from [astral.sh](https://astral.sh) offering:
+  - **uv:** project management + dependency management
+  - **ruff**: linter and code formatter
+  - **ty**: fast type checker
 
 ## Performance analysis
 
@@ -37,17 +37,10 @@ The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width 
 
 **Requirements:** Enough free disk space (default output is at least **2 GiB**).
 
-| Argument / option | Description |
-| --- | --- |
-| `copybook` | Path to the `.cpy` file (elementary `PIC` clauses). |
-| `output` | Path of the generated `.dat` file (e.g. `data/huge_fixed_size_file.dat`). |
-| `--target-bytes` | Minimum total file size in bytes (default: `2147483648`, i.e. 2 GiB; values below that are rejected). |
-| `--seed` | RNG seed for reproducible records (default: `42`). |
-
 **Example** using the repository fixture copybook (65-byte payload + newline per record):
 
 ```bash
-uv run python bin/generate_huge_ascii_file.py \
+uv run bin/generate_huge_ascii_file.py \
   test/fixtures/sample_file_record.cpy \
   data/huge_fixed_size_file.dat
 ```
@@ -72,15 +65,15 @@ uv run run.py
 ```
 The run.py file will track the execution time of the following stages:
 
-1. **Stage 1** — `main()` converts the fixed-width file to an anlytics-friedly Apache Parquet in disk
-2. **Stage 2** — `validation_etl` computes all file validations according to a given set of validations rules and store the results again in disk.
+1. **Stage 1** — [`main()`](src/file_validator/main.py) converts the fixed-width file to an anlytics-friedly Apache Parquet in disk
+2. **Stage 2** — [`validation_etl`](run.py) computes all file validations according to a given set of validations rules and store the results again in disk.
 
 The typical execution times of each implemetation are the following:
 
 | Backend | Time (same workload, same machine) | CPU during conversion |
 | --- | ---: | --- |
-| **Pure rust** (`file_validator.parsers.rust`) | **~6 s** (typical) | High utilization across cores |
-| **Python using Polars** (`file_validator.parsers.polars`) | **~6 s** (typical) | Comparable for this pipeline |
+| **Pure rust** (`file_validator.parsers.rust`) | **~10 s** (typical) | High utilization across cores |
+| **Python using Polars** (`file_validator.parsers.polars`) | **~10 s** (typical) | Comparable for this pipeline |
 
 ## Conclusions
 
