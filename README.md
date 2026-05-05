@@ -10,7 +10,7 @@ The main goal of this repo is to benchmark two different implementations:
 * a [Python](src/file_validator/parsers/polars/parser.py) parser (based on **polars** analytical library)
 * a [Rust](rust/src/lib.rs) parser
 
-## Parsing logic
+## File parsing logic
 
 The data pipeline is the same for both implementations:
   * Convert fixed-length file into a tabular analytical file (Parquet) and store it into disk
