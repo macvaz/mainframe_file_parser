@@ -4,11 +4,11 @@ High-performing Python-based project for parsing fixed-width mainframe files. Th
 
 ## Goal
 
-According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), Rust is well-known as one of the fastest programming languages in execution time. [Python](https://niklas-heer.github.io/speed-comparison/) is also known as one of the slowest.
+According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), Rust is well-known as one of the fastest programming languages in execution time. Python is also known as one of the slowest.
 
 The main goal of this repo is to benchmark two different implementations:
 * a [Python](src/file_validator/parsers/polars/parser.py) parser (based on **polars** analytical library)
-* a [Rust](rust/src/lib.rs) parser
+* a [Rust](rust/src/lib.rs) parser developed from the scratch
 
 ## File parsing logic
 
