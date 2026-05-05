@@ -33,7 +33,7 @@ For implementing the CI pipelines, mainstream open-source development tools are 
 
 The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width ASCII file from an input **COBOL copybook**.
 
- **Random values are chosen for 3 supported data types** (`string`, `integer`, `decimal`).
+ Random values are chosen for 3 supported data types (`string`, `integer`, `decimal`).
 
 **Requirements:** Enough free disk space (default output is at least **2 GiB**).
 
@@ -86,7 +86,9 @@ The typical execution times of each implemetation are the following:
 
 According to experimental results and benchmarks, the **execution wall time of both implementations are completely aligned**.
 
-Both implementation are able to use 100% of the available computation resources in the testing machine used [1]
+Both implementation are able to **use 100% of the available computation resources (cpu cores)** in the testing machine used [1].
+
+Memory consumption is stable during execution, **being able to process files bigger the memory size**.
 
 
 Additionaly, **the python-based implementation is way simpler and more mantainable**. 
@@ -115,3 +117,5 @@ uv run pytest -q test/ --run-huge -rs
 
 [1] htop screen shot showing cpu utilization during tests
 
+
+![CPU utilization during tests](docs/cpu_utilization.png)
