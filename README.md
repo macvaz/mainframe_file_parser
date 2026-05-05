@@ -1,6 +1,6 @@
 # mainframe-validator
 
-High-performing Python-based project for parsing fixed-width mainframe files. This is a common pattern in reg tech projects (Regulatory Technologies) applied in the central banking sector.
+High-performing Python-based tool for parsing fixed-width mainframe files. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking sector.
 
 ## Goal
 
@@ -49,7 +49,7 @@ pytest
 
 The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width ASCII file from an input **COBOL copybook**.
 
-Random values are chosen for 3 supported data types (`string`, `integer`, `decimal`). Enough free disk space (default output is at least **2 GiB**).
+During file generation, dandom values are chosen for 3 supported data types (`string`, `integer`, `decimal`). Significant free disk space (default output is at least **2 GiB**) will be required (/data folder is ignored by git).
 
 In order to create a sample file, execute the following:
 

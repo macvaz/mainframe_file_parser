@@ -12,32 +12,6 @@ from file_validator.types import ColumnDefinition, FileSchema
 _DECIMAL_RE = re.compile(r"^decimal\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$", re.IGNORECASE)
 
 
-def _type_from_str(raw: str) -> tuple[str, int | None, int | None]:
-    lower = raw.strip().lower()
-    m = _DECIMAL_RE.match(lower)
-    if m is not None:
-        p, s = int(m.group(1)), int(m.group(2))
-        if p == 0 or p > 38:
-            raise ValueError(f"decimal precision must be 1..=38, got {p} in {raw!r}")
-        if s < 0 or s > p:
-            raise ValueError(
-                f"decimal scale must be 0..=precision, got scale={s} precision={p} in {raw!r}"
-            )
-        return "decimal", p, s
-    match lower:
-        case "string" | "str" | "text" | "utf8":
-            return "string", None, None
-        case "integer" | "int" | "int64":
-            return "integer", None, None
-        case "float" | "double" | "float64":
-            return "float", None, None
-        case other:
-            raise ValueError(
-                f"unsupported type {other!r}, expected one of: "
-                "string|integer|float|decimal(p,s)"
-            )
-
-
 def _polars_dtype(col: ColumnDefinition) -> pl.DataType:
     if col.kind == "string":
         return pl.String()
