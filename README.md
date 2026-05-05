@@ -2,7 +2,7 @@
 
 High-performing Python-based tool for parsing fixed-width mainframe files. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking sector.
 
-## Goal
+## 1. Goal
 
 According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), Rust is well-known as one of the fastest programming languages in execution time. Python is also known as one of the slowest.
 
@@ -10,7 +10,7 @@ The main goal of this repo is to benchmark two different implementations:
 * a [Python](src/file_validator/parsers/polars/parser.py) parser (based on **polars** analytical library)
 * a [Rust](rust/src/lib.rs) parser developed from the scratch
 
-## File parsing logic
+## 2. File parsing logic
 
 The data pipeline is the same for both implementations:
   * Convert fixed-length file into a tabular analytical file (Parquet) and store it on disk
@@ -20,7 +20,7 @@ Both versions rely on open-source high-performing analytical libraries, enabling
   * Apache Arrow
   * SIMD vectorized CPU instructions
 
-## CI pipelines
+## 3. CI pipelines
 
 To implement the CI pipelines, mainstream open-source development tools are used from [astral.sh](https://astral.sh) offering:
   - **uv:** project management + dependency management
@@ -43,7 +43,7 @@ ty check src
 pytest
 ```
 
-## Performance analysis
+## 4. Performance analysis
 
 ### Generating the testing file
 
@@ -89,7 +89,7 @@ The typical execution times of each implementation are the following:
 | **Pure Rust** (`file_validator.parsers.rust`) | **~10 s** (typical) | High utilization across cores |
 | **Python using Polars** (`file_validator.parsers.polars`) | **~10 s** (typical) | High utilization across cores |
 
-## Conclusions
+## 5. Conclusions
 
 According to experimental results and benchmarks, the **execution wall times of both implementations are completely aligned**.
 
@@ -100,7 +100,7 @@ Memory consumption is stable during execution, **being able to process files lar
 
 Additionally, **the Python-based implementation is way simpler and more maintainable**.
 
-## References and media
+## 6. References and media
 
 [1] htop screenshot showing CPU utilization during tests
 
