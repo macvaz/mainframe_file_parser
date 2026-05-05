@@ -1,24 +1,41 @@
 # mainframe-validator
 
-High-performing Python-based project for parsing fixed-width mainframe files. This is a general pattern in reg tech projects (Regulatory Technologies). 
+High-performing Python-based project for parsing fixed-width mainframe files. This is a common pattern in reg tech projects (Regulatory Technologies) applied in central banking sector.
 
-The data pipeline is the following:
+## Goal
+
+According to many technical assessments, [rust](https://niklas-heer.github.io/speed-comparison/) is well-known as one of fastest programming languages in execution time. [Python](https://niklas-heer.github.io/speed-comparison/) is also known as one of the slowests.
+
+The main goal of this repo is to benchmark two different implementations:
+* a [Python](src/file_validator/parsers/polars/parser.py) parser (uses polars library)
+* a [Rust](rust/src/lib.rs) parser
+
+## Code
+
+The data pipeline is the same for both implementations:
   * Convert fixed-length file into a tabular analytical file (Parquet) and store it into disk
-  * Applying a set of validation rules to the input file (each validation is an additional column of the dataframe computed in parallel with a boolean value)
+  * Applying a set of validation rules to the input file, geneting a new column with the validation results per applied validatin.
 
-It uses open-source high-performing analytical Python libraries (written in Rust) like polars, enabled with state-of-the-art technologies for fast analytics like
-  - Apache Arrow
-  - SIMD vectorized cpu instructions
+Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
+  * Apache Arrow
+  * SIMD vectorized cpu instructions
 
-For implementing the CI pipelines, mainstream open-source development tools are used from the astral.sh offering:
-  - uv (project management + dependency management)
-  - ruff (linter and formater)
-  - ty (fast type checker)
+## CI pipelines
 
-## Generate the huge fixed-width input file
+For implementing the CI pipelines, mainstream open-source development tools are used from the [astral.sh](https://astral.sh) offering:
+  - uv: project management + dependency management
+  - ruff: linter and code formatter
+  - ty: fast type checker
 
-The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width ASCII file from an input **COBOL copybook**. **Random values are chosen only from column types** (`string`, `integer`, `decimal`), not from field names. 
-**Requirements:** project root, `src` on `PYTHONPATH` (or use the examples below), and enough free disk space (default output is at least **2 GiB**).
+## Performance analysis
+
+### Generating the testing file
+
+The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width ASCII file from an input **COBOL copybook**.
+
+ **Random values are chosen for 3 supported data types** (`string`, `integer`, `decimal`).
+
+**Requirements:** Enough free disk space (default output is at least **2 GiB**).
 
 | Argument / option | Description |
 | --- | --- |
@@ -43,42 +60,38 @@ The copybook used for generating the sample data is the following:
            05  AMOUNT                     PIC 9(09)V99.
 ```
 
+The sample file will contain arround **32,540,000** records.
 
-## Run the example script
 
-From project root (Rust wheel installed, input data at `data/huge_fixed_size_file.dat` as in `run.py`):
+### Running the performance tests
+
+From project root:
 
 ```bash
 uv run run.py
 ```
+The run.py file will track the execution time of the following stages:
 
-### Input file size (from notebook)
-
-The huge sample matches **32,540,000** records: `notebooks/exploration.ipynb` cell 1 runs `pl.scan_parquet("data/huge_fixed_size_file.parquet/*").count().collect()`, which reports 32,540,000 rows for each of `FULL_NAME`, `YEAR`, and `AMOUNT` (same row count as the source fixed-width file once converted).
-
-## Benchmarking the execution
-
-`run.py` times two stages and prints seconds for each, plus total wall time:
-
-1. **Stage 1** — `main()` converts the fixed-width file to **`INTERMEDIATE_OUTPUT_PATH`** in Apache Parquet.
+1. **Stage 1** — `main()` converts the fixed-width file to an anlytics-friedly Apache Parquet in disk
 2. **Stage 2** — `validation_etl` computes all file validations according to a given set of validations rules and store the results again in disk.
 
-### Rust extension vs Polars (`file_parser`)
-
-Two different parsers have been implemented:
-  * In native Rust, a platform-dependent high-performing programing language
-  * In pure python using polars 
-
-According to experimental executions and benchmarkings, the execution wall time is the same between both implementations. Without any doubt, **the python-based implementation is way simpler and more mantainable. No need to code in pure rust to get high-performing execution time**.
+The typical execution times of each implemetation are the following:
 
 | Backend | Time (same workload, same machine) | CPU during conversion |
 | --- | ---: | --- |
 | **Pure rust** (`file_validator.parsers.rust`) | **~6 s** (typical) | High utilization across cores |
 | **Python using Polars** (`file_validator.parsers.polars`) | **~6 s** (typical) | Comparable for this pipeline |
 
-Figures are indicative (same fixed-width input and schema as `run.py`); absolute seconds vary by hardware, disk, and file size.
+## Conclusions
 
-## Run Tests
+According to experimental results and benchmarks, the **execution wall time of both implementations are completely aligned**.
+
+Both implementation are able to use 100% of the available computation resources in the testing machine used [1]
+
+
+Additionaly, **the python-based implementation is way simpler and more mantainable**. 
+
+## Run unit and integration tests
 
 Run default tests (huge test excluded by default):
 
@@ -97,3 +110,8 @@ Run all tests including huge:
 ```bash
 uv run pytest -q test/ --run-huge -rs
 ```
+
+## Refrences and media
+
+[1] htop screen shot showing cpu utilization during tests
+
