@@ -25,6 +25,11 @@ stubPath = "typings"
 include = ["src"]
 pythonVersion = "3.12"
 
+# ty only reads pyproject when [tool.ty] is present; align stub search with Pyright.
+[tool.ty.environment]
+extra-paths = ["typings"]
+python-version = "3.12"
+
 [tool.pytest.ini_options]
 testpaths = ["test"]
 pythonpath = ["src"]
@@ -37,5 +42,6 @@ dev = [
     "maturin>=1.13.1",
     "pytest>=9.0.3",
     "ruff>=0.15.12",
+    "ty>=0.0.34",
 ]
 

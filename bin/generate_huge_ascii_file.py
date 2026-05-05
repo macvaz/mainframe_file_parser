@@ -43,9 +43,7 @@ def validate_generator_schema(schema: FileSchema) -> None:
                 f"copybook field {col.name!r} has kind {col.kind!r}; "
                 "this generator only supports: string, integer, decimal"
             )
-        if col.kind == "decimal" and (
-            col.precision is None or col.scale is None
-        ):
+        if col.kind == "decimal" and (col.precision is None or col.scale is None):
             raise ValueError(
                 f"decimal field {col.name!r} must have precision and scale set"
             )

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from file_validator.types import FileSchema
 
-
 def parse_and_write_parquet(
     input_path: str,
     output_folder: str,
