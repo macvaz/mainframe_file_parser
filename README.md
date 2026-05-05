@@ -49,11 +49,9 @@ pytest
 
 The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width ASCII file from an input **COBOL copybook**.
 
-Random values are chosen for 3 supported data types (`string`, `integer`, `decimal`).
+Random values are chosen for 3 supported data types (`string`, `integer`, `decimal`). Enough free disk space (default output is at least **2 GiB**).
 
-**Requirements:** Enough free disk space (default output is at least **2 GiB**).
-
-**Example** using the repository fixture copybook (65-byte payload + newline per record):
+In order to create a sample file, execute the following:
 
 ```bash
 uv run bin/generate_huge_ascii_file.py \
@@ -89,7 +87,7 @@ The typical execution times of each implementation are the following:
 | Backend | Time (same workload, same machine) | CPU during conversion |
 | --- | ---: | --- |
 | **Pure Rust** (`file_validator.parsers.rust`) | **~10 s** (typical) | High utilization across cores |
-| **Python using Polars** (`file_validator.parsers.polars`) | **~10 s** (typical) | Comparable for this pipeline |
+| **Python using Polars** (`file_validator.parsers.polars`) | **~10 s** (typical) | High utilization across cores |
 
 ## Conclusions
 
