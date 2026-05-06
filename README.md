@@ -14,7 +14,7 @@ The main goal of this repo is to benchmark two different implementations:
 
 The data pipeline is the same for both implementations:
   * Convert fixed-length file into a tabular analytical file (Parquet) and store it on disk
-  * Apply a set of validation rules to the input file, generating a new column with the validation results for each applied validation.
+  * Apply a set of validation rules to the parquet file, generating a new column for each validation
 
 Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
   * Apache Arrow
