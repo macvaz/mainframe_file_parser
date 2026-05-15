@@ -6,9 +6,9 @@ dist/
 wheels/
 *.egg-info
 # setuptools sometimes drops *.egg-info next to packages under src/
-src/*.egg-info/
+packages/**/*.egg-info/
 
 # Virtual environments
 .venv
-rust/target/
+packages/file_validator/rust/target/
 data
