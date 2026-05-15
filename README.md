@@ -99,7 +99,7 @@ Memory consumption is stable during execution, **being able to process files lar
 
 Additionally, **the Python-based implementation is way simpler and more maintainable**.
 
-**Avoid running any Python function as an UDFs in the polars API if performance is an goal (except 20-50x penalty in execution time). Base your code only on native polars API calls that are backed by rust binaries and execution enviroment. 
+**Avoid running any pure Python function as an UDFs in the polars API if performance is an goal** (except 20-50x penalty in execution time). Base your code only on native polars API calls that are backed by rust binaries and execution enviroment. 
 
 ## 6. References and media
 
