@@ -1,7 +1,7 @@
 from typing import List
 import rustworkx as rx
 
-from file_validator.formula_engine.common.types import Assignment
+from formula_engine.common.types import Assignment
 
 
 def create_dag(formulas: List[Assignment]):

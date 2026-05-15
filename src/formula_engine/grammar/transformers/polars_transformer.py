@@ -4,7 +4,7 @@ from typing import List
 import polars as pl
 from lark import Transformer, v_args
 
-from file_validator.formula_engine.common.types import Assignment, IndicatorInfo
+from formula_engine.common.types import Assignment, IndicatorInfo
 
 
 @v_args(inline=True)

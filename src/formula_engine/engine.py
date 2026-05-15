@@ -2,12 +2,10 @@ from typing import List
 
 import polars as pl
 
-from file_validator.formula_engine.common.types import Assignment
-from file_validator.formula_engine.grammar.grammar import parser
-from file_validator.formula_engine.grammar.transformers.polars_transformer import (
-    PolarsTransformer,
-)
-from file_validator.formula_engine.graph.dag import create_dag, iterate_by_generation
+from formula_engine.common.types import Assignment
+from formula_engine.grammar.grammar import parser
+from formula_engine.grammar.transformers.polars_transformer import PolarsTransformer
+from formula_engine.graph.dag import create_dag, iterate_by_generation
 
 
 def _preview(df: pl.DataFrame | pl.LazyFrame) -> None:

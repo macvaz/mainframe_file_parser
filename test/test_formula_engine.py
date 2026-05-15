@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import polars as pl
 
-from file_validator.formula_engine.grammar.grammar import parser
-from file_validator.formula_engine.grammar.transformers.polars_transformer import (
-    PolarsTransformer,
-)
+from formula_engine.grammar.grammar import parser
+from formula_engine.grammar.transformers.polars_transformer import PolarsTransformer
 
 
 def test_polars_transformer_builds_indicator_columns() -> None:
