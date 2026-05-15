@@ -7,8 +7,8 @@ High-performing Python-based tool for parsing fixed-width mainframe files. This 
 According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), Rust is well-known as one of the fastest programming languages in execution time. Python is also known as one of the slowest.
 
 The main goal of this repo is to benchmark two different implementations:
-* a [Python](src/file_validator/parsers/polars/parser.py) parser (based on **polars** analytical library)
-* a [Rust](rust/src/lib.rs) parser developed from the scratch
+* a [Python](packages/file_validator/src/file_validator/parsers/polars/parser.py) parser (based on **polars** analytical library)
+* a [Rust](packages/file_validator/rust/src/lib.rs) parser developed from the scratch
 
 ## 2. File parsing logic
 
@@ -79,7 +79,7 @@ uv run run.py
 ```
 The run.py file will track the execution time of the following stages:
 
-1. **Stage 1** — [`main()`](src/file_validator/main.py) converts the fixed-width file to an analytics-friendly Apache Parquet on disk
+1. **Stage 1** — [`main()`](packages/file_validator/src/file_validator/main.py) converts the fixed-width file to an analytics-friendly Apache Parquet on disk
 2. **Stage 2** — [`validation_etl`](run.py) computes all file validations according to a given set of validation rules and stores the results again on disk.
 
 The typical execution times of each implementation are the following:

@@ -1,0 +1,28 @@
+[project]
+name = "file-validator"
+version = "0.1.0"
+description = "Parse fixed-width mainframe files and validate with Polars"
+requires-python = ">=3.12"
+dependencies = [
+    "polars>=1.29.0",
+    "python-cobol>=0.1.4",
+]
+
+[dependency-groups]
+dev = [
+    "maturin>=1.13.1",
+]
+
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "huge: multi-GB fixed file integration (requires pytest --run-huge)",
+]
