@@ -5,10 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "lark>=1.2.0",
-    "polars>=1.29.0",
+    "lark>=1.2.0", # Parsing formulas and convert them to polars expressions
+    "polars>=1.29.0", # Running high-performance data transformations to a dataframe
     "python-cobol>=0.1.4", # Used only parsing COBOL copies and not needed as a general dependecy for regtech
-    "rustworkx>=0.15.0",
+    "rustworkx>=0.15.0", # Managing dependencies between formulas as a graph
 ]
 
 [build-system]
