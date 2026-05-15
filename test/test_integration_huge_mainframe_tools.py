@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pyarrow as pa
-import pyarrow.parquet as pq
+import polars as pl
 import pytest
 
 from file_validator.types import ColumnDefinition
@@ -51,8 +50,13 @@ def test_huge_fixed_file_to_parquet_single_writer(tmp_path: Path) -> None:
         f"found: {sorted(p.name for p in out_dir.iterdir())}"
     )
 
-    total_rows = sum(pq.read_metadata(p.as_posix()).num_rows for p in shard_files)
+    total_rows = (
+        pl.scan_parquet([p.as_posix() for p in shard_files])
+        .select(pl.len())
+        .collect()
+        .item()
+    )
     assert total_rows == expected_rows
 
-    amt_type = pq.read_schema(shard_files[0].as_posix()).field("AMOUNT").type
-    assert amt_type == pa.decimal128(11, 2), amt_type
+    amt_dtype = pl.scan_parquet(shard_files[0].as_posix()).collect_schema()["AMOUNT"]
+    assert amt_dtype == pl.Decimal(11, 2), amt_dtype

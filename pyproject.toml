@@ -5,9 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "lark>=1.2.0",
     "polars>=1.29.0",
-    "pyarrow>=15.0.0",
-    "python-cobol>=0.1.4",
+    "python-cobol>=0.1.4", # Used only parsing COBOL copies and not needed as a general dependecy for regtech
+    "rustworkx>=0.15.0",
 ]
 
 [build-system]
@@ -39,7 +40,7 @@ markers = [
 
 [dependency-groups]
 dev = [
-    "maturin>=1.13.1",
+    "maturin>=1.13.1", # Used only building the rust extension and not needed as a general dependecy for regtech
     "pytest>=9.0.3",
     "ruff>=0.15.12",
     "ty>=0.0.34",
