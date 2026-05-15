@@ -91,14 +91,15 @@ The typical execution times of each implementation are the following:
 
 ## 5. Conclusions
 
-According to experimental results and benchmarks, the **execution wall times of both implementations are completely aligned**.
+According to experimental results and benchmarks, the **execution wall times of both implementations are similar**.
 
-Both implementations are able to **use 100% of the available computation resources (CPU cores)** in the testing machine used [1].
+Both implementations are able to **use 100% of the available computation resources (CPU cores)** in the testing machine used [1]. Thermal throttling may be an issue (lowering CPU frequencies specially using mainstream low-end laptop processors with limited cooling) while CPU-core temperatures are too high.
 
 Memory consumption is stable during execution, **being able to process files larger than memory**.
 
-
 Additionally, **the Python-based implementation is way simpler and more maintainable**.
+
+**Avoid running any Python function as an UDFs in the polars API if performance is an goal (except 20-50x penalty in execution time). Base your code only on native polars API calls that are backed by rust binaries and execution enviroment. 
 
 ## 6. References and media
 
