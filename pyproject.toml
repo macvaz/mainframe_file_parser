@@ -1,48 +1,46 @@
 [project]
 name = "mainframe-validator"
 version = "0.1.0"
-description = "Add your description here"
+description = "Monorepo for mainframe file parsing and formula validation"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "lark>=1.2.0", # Parsing formulas and convert them to polars expressions
-    "polars>=1.29.0", # Running high-performance data transformations to a dataframe
-    "python-cobol>=0.1.4", # Used only parsing COBOL copies and not needed as a general dependecy for regtech
-    "rustworkx>=0.15.0", # Managing dependencies between formulas as a graph
+    "file-validator",
+    "formula-engine",
 ]
 
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.uv.workspace]
+members = ["packages/file_validator", "packages/formula_engine"]
 
-[tool.setuptools]
-package-dir = {"" = "src"}
-
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.uv.sources]
+file-validator = { workspace = true }
+formula-engine = { workspace = true }
 
 [tool.pyright]
-stubPath = "typings"
-include = ["src"]
+stubPath = "packages/file_validator/typings"
+include = ["packages/file_validator/src", "packages/formula_engine/src", "run.py"]
+extraPaths = ["packages/file_validator/src", "packages/formula_engine/src"]
 pythonVersion = "3.12"
+pythonPlatform = "Linux"
+venvPath = "."
+venv = ".venv"
 
-# ty only reads pyproject when [tool.ty] is present; align stub search with Pyright.
 [tool.ty.environment]
-extra-paths = ["typings"]
+extra-paths = ["packages/file_validator/typings"]
 python-version = "3.12"
 
 [tool.pytest.ini_options]
-testpaths = ["test"]
-pythonpath = ["src"]
+testpaths = [
+    "packages/file_validator/tests",
+    "packages/formula_engine/tests",
+]
 markers = [
     "huge: multi-GB fixed file integration (requires pytest --run-huge)",
 ]
 
 [dependency-groups]
 dev = [
-    "maturin>=1.13.1", # Used only building the rust extension and not needed as a general dependecy for regtech
     "pytest>=9.0.3",
     "ruff>=0.15.12",
     "ty>=0.0.34",
 ]
-

@@ -2,6 +2,13 @@ version = 1
 revision = 3
 requires-python = ">=3.12"
 
+[manifest]
+members = [
+    "file-validator",
+    "formula-engine",
+    "mainframe-validator",
+]
+
 [[package]]
 name = "colorama"
 version = "0.4.6"
@@ -9,6 +16,46 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
+]
+
+[[package]]
+name = "file-validator"
+version = "0.1.0"
+source = { editable = "packages/file_validator" }
+dependencies = [
+    { name = "polars" },
+    { name = "python-cobol" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "maturin" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "polars", specifier = ">=1.29.0" },
+    { name = "python-cobol", specifier = ">=0.1.4" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "maturin", specifier = ">=1.13.1" }]
+
+[[package]]
+name = "formula-engine"
+version = "0.1.0"
+source = { editable = "packages/formula_engine" }
+dependencies = [
+    { name = "lark" },
+    { name = "polars" },
+    { name = "rustworkx" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "lark", specifier = ">=1.2.0" },
+    { name = "polars", specifier = ">=1.29.0" },
+    { name = "rustworkx", specifier = ">=0.15.0" },
 ]
 
 [[package]]
@@ -32,17 +79,14 @@ wheels = [
 [[package]]
 name = "mainframe-validator"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
-    { name = "lark" },
-    { name = "polars" },
-    { name = "python-cobol" },
-    { name = "rustworkx" },
+    { name = "file-validator" },
+    { name = "formula-engine" },
 ]
 
 [package.dev-dependencies]
 dev = [
-    { name = "maturin" },
     { name = "pytest" },
     { name = "ruff" },
     { name = "ty" },
@@ -50,15 +94,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "lark", specifier = ">=1.2.0" },
-    { name = "polars", specifier = ">=1.29.0" },
-    { name = "python-cobol", specifier = ">=0.1.4" },
-    { name = "rustworkx", specifier = ">=0.15.0" },
+    { name = "file-validator", editable = "packages/file_validator" },
+    { name = "formula-engine", editable = "packages/formula_engine" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "maturin", specifier = ">=1.13.1" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "ruff", specifier = ">=0.15.12" },
     { name = "ty", specifier = ">=0.0.34" },

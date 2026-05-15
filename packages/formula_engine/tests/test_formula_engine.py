@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 import polars as pl
 
 from formula_engine.grammar.grammar import parser
@@ -16,6 +18,6 @@ b: PROD({a}, 2)
     for name, info in assignments:
         lf = lf.with_columns(info.expr.alias(name))
 
-    out = lf.collect()
+    out = cast(pl.DataFrame, lf.collect())
     assert out["a"].to_list() == [4.0, 6.0]
     assert out["b"].to_list() == [8.0, 12.0]

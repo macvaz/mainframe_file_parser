@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 import polars as pl
 import pytest
@@ -26,7 +27,7 @@ def test_huge_fixed_file_to_parquet_single_writer(tmp_path: Path) -> None:
         ),
     )
 
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[3]
     input_path = root / "data" / "huge_fixed_size_file.dat"
     if not input_path.is_file():
         pytest.skip(f"Huge input file not found: {input_path}")
@@ -50,12 +51,10 @@ def test_huge_fixed_file_to_parquet_single_writer(tmp_path: Path) -> None:
         f"found: {sorted(p.name for p in out_dir.iterdir())}"
     )
 
-    total_rows = (
-        pl.scan_parquet([p.as_posix() for p in shard_files])
-        .select(pl.len())
-        .collect()
-        .item()
-    )
+    total_rows = cast(
+        pl.DataFrame,
+        pl.scan_parquet([p.as_posix() for p in shard_files]).select(pl.len()).collect(),
+    ).item()
     assert total_rows == expected_rows
 
     amt_dtype = pl.scan_parquet(shard_files[0].as_posix()).collect_schema()["AMOUNT"]

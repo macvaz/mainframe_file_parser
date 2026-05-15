@@ -1,4 +1,5 @@
 import operator
+from collections.abc import Callable
 from typing import List
 
 import polars as pl
@@ -62,7 +63,10 @@ def _as_indicator_info(value: IndicatorInfo | str) -> IndicatorInfo:
     raise TypeError(f"expected IndicatorInfo or column name, got {type(value)!r}")
 
 
-def _handle_binary_operator(op_function: operator, *infos: IndicatorInfo) -> IndicatorInfo:
+def _handle_binary_operator(
+    op_function: Callable[[pl.Expr, pl.Expr], pl.Expr],
+    *infos: IndicatorInfo,
+) -> IndicatorInfo:
     result_expr = infos[0].expr
     result_ref = list(infos[0].references)
     for next_info in infos[1:]:
