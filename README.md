@@ -29,6 +29,12 @@ To implement the CI pipelines, mainstream open-source development tools are used
 
 Unit and integration testing is based on **pytest**.
 
+For setting up the virtual enviroment:
+
+```bash
+uv sync --all-packages
+```
+
 Some commands typically used in CI pipelines:
 
 ```bash
