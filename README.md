@@ -98,11 +98,11 @@ Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic
   * **Parse the fixed-length file** accoding to the **copybook** and convert it into a tabular analytical file (Parquet) and store it on disk
   * Apply a set of **validation rules** defined using a [formula language](formulas.txt) to the parquet file, generating a new column for each validation rule
 
-The sample copybook used in this examples is the following:
+The sample copybook used is the following:
 
 ```cobol
        01  FILE-RECORD.
-           05  FULL_NAME                  PIC X(50).
+           05  FULL-NAME                  PIC X(50).
            05  YEAR                       PIC 9(4).
            05  AMOUNT                     PIC 9(09)V99.
 ```
