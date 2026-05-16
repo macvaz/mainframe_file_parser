@@ -28,6 +28,17 @@ def _column_expr(raw: str, col: ColumnDefinition) -> pl.Expr:
     field = pl.col(raw).str.slice(col.start, col.length).str.strip_chars()
     if col.kind == "string":
         return field.alias(col.name)
+    if col.kind == "decimal":
+        assert col.precision is not None and col.scale is not None
+        dtype = pl.Decimal(col.precision, col.scale)
+        # COBOL implied decimal (PIC … V99): digits are unscaled; scale is metadata.
+        unscaled = field.cast(pl.Int64, strict=False)
+        scaled = (
+            unscaled
+            if col.scale == 0
+            else unscaled / pl.lit(10**col.scale)
+        )
+        return scaled.cast(dtype, strict=False).alias(col.name)
     return field.cast(_polars_dtype(col), strict=False).alias(col.name)
 
 
