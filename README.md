@@ -16,38 +16,38 @@ The main goal of this repo is to benchmark two different implementations:
 
 The project is structured following a monorepo setup. Several python packages can be found in the [packages](packages/) folder.
 
-```
-mainframe_validator/
-├── bin/
-├── data/                            # Data files (gitignored)
-├── docs/
-├── notebooks/
-├── packages/
-│   ├── file_parser/                 # ← Fixed-length file parser from a cobol copybook
-│   │   ├── rust/                    
-│   │   │   └── src/lib.rs           # Rust extension code
-│   │   ├── src/file_parser/
-│   │   │   ├── main.py
-│   │   │   ├── parsers/
-│   │   │   │   ├── polars/          # Polars-based parser
-│   │   │   │   │   ├── parser.py
-│   │   │   │   │   └── utils.py
-│   │   │   │   └── rust/            # Python bindings to Rust extension
-│   │   │   ├── types/
-│   │   │   └── utils/               
-│   │   ├── tests/
-│   │   └── typings/mainframe_tools/
-│   └── formula_engine/              # ← Formula language for validations (and derived data)
-│       ├── src/formula_engine/
-│       │   ├── engine.py
-│       │   ├── grammar/
-│       │   └── graph/
-│       └── tests/
-├── conftest.py
-├── formulas.txt                     # ← Formulas executed by benchmark.py
-├── pyproject.toml                   # Workspace root (uv)
-├── benchmark.py                     # ← Benchmark entrypoint
-└── uv.lock
+```diff
+ mainframe_validator/
+ ├── bin/
+ ├── data/                            # Data files (gitignored)
+ ├── docs/
+ ├── notebooks/
+ ├── packages/
++│   ├── file_parser/                 # Fixed-length file parser from a cobol copybook
+ │   │   ├── rust/
+ │   │   │   └── src/lib.rs           # Rust extension code
+ │   │   ├── src/file_parser/
+ │   │   │   ├── main.py
+ │   │   │   ├── parsers/
+ │   │   │   │   ├── polars/          # Polars-based parser
+ │   │   │   │   │   ├── parser.py
+ │   │   │   │   │   └── utils.py
+ │   │   │   │   └── rust/            # Python bindings to Rust extension
+ │   │   │   ├── types/
+ │   │   │   └── utils/
+ │   │   ├── tests/
+ │   │   └── typings/mainframe_tools/
++│   └── formula_engine/              # Formula language for validations (and derived data)
+ │       ├── src/formula_engine/
+ │       │   ├── engine.py
+ │       │   ├── grammar/
+ │       │   └── graph/
+ │       └── tests/
+ ├── conftest.py
++├── formulas.txt                     # Formulas executed by benchmark.py
+ ├── pyproject.toml                   # Workspace root (uv)
++├── benchmark.py                     # Benchmark entrypoint
+ └── uv.lock
 ```
 
 The project is managed using **uv**. To create the python virtual environment and download the dependencies of all the packages, run:
