@@ -98,8 +98,17 @@ Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic
   * **Parse the fixed-length file** accoding to the **copybook** and convert it into a tabular analytical file (Parquet) and store it on disk
   * Apply a set of **validation rules** defined using a [formula language](formulas.txt) to the parquet file, generating a new column for each validation rule
 
+The sample copybook used in this examples is the following:
+
+```cobol
+       01  FILE-RECORD.
+           05  FULL_NAME                  PIC X(50).
+           05  YEAR                       PIC 9(4).
+           05  AMOUNT                     PIC 9(09)V99.
+```
+
 The resulting dataframe is composed of 2 main blocks:
-  - One column per field defined in the copybook (NAME, YEAR and AMOUNT with the sample copybook)
+  - One column per field defined in the copybook (FULL_NAME, YEAR and AMOUNT)
   - One column per validation rule defined in the [formulas.txt](formulas.txt) file (VALID_NAME, VALID_YEAR, VALID_AMOUNT)
 
 A visual representation of the expected results is depicted in the following screenshot:
@@ -124,14 +133,6 @@ In order to create a sample file, execute the following:
 uv run bin/generate_huge_ascii_file.py \
   test/fixtures/sample_file_record.cpy \
   data/huge_fixed_size_file.dat
-```
-The copybook used for generating the sample data is as follows:
-
-```cobol
-       01  FILE-RECORD.
-           05  FULL-NAME                  PIC X(50).
-           05  YEAR                       PIC 9(4).
-           05  AMOUNT                     PIC 9(09)V99.
 ```
 
 The sample file will contain around **32,540,000** records.
