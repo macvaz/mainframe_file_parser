@@ -18,7 +18,7 @@ formula-engine = { workspace = true }
 
 [tool.pyright]
 stubPath = "packages/file_parser/typings"
-include = ["packages/file_parser/src", "packages/formula_engine/src", "run.py"]
+include = ["packages/file_parser/src", "packages/formula_engine/src", "benchmark.py"]
 extraPaths = ["packages/file_parser/src", "packages/formula_engine/src"]
 pythonVersion = "3.12"
 pythonPlatform = "Linux"

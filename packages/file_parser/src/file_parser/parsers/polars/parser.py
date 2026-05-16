@@ -32,7 +32,7 @@ def parse_and_write_parquet(
     ``(byte_offset, length, type_string)``.
 
     The input must be **newline-separated** lines (e.g. ASCII + optional ``\\n`` after
-    the payload, as in ``run.py`` with ``line_terminated=True``). Polars returns each
+    the payload, as in ``benchmark.py`` with ``line_terminated=True``). Polars returns each
     line without the trailing newline; field offsets are still valid on the payload.
 
     ``record_size`` and ``rows_per_batch`` are kept for the :class:`MainframeParser`

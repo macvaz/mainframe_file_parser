@@ -9,7 +9,7 @@ import pytest
 from file_parser.types import ColumnDefinition
 
 RECORD_SIZE = 66
-# Same layout as run.py / copybook: PIC 9(9)V99 → 11 positions, 2 implied decimals.
+# Same layout as benchmark.py / copybook: PIC 9(9)V99 → 11 positions, 2 implied decimals.
 SCHEMA: list[ColumnDefinition] = [
     ColumnDefinition("FULL_NAME", 0, 50, "string", None, None),
     ColumnDefinition("YEAR", 50, 4, "integer", None, None),

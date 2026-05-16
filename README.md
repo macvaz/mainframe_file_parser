@@ -21,7 +21,8 @@ mainframe_validator/
 │   └── generate_huge_ascii_file.py  # generate fixed-width sample data
 ├── data/                            # data files (gitignored)
 ├── docs/
-│   └── cpu_utilization.png
+│   ├── cpu_utilization.png
+│   └── resulting_dataframe.jpg
 ├── notebooks/
 │   └── exploration.ipynb
 ├── packages/
@@ -48,9 +49,9 @@ mainframe_validator/
 │       │   └── graph/
 │       └── tests/
 ├── conftest.py
-├── formulas.txt                     # formulas to be executed by the run.py command
+├── formulas.txt                     # formulas executed by benchmark.py
 ├── pyproject.toml                   # workspace root (uv)
-├── run.py                           # benchmark code
+├── benchmark.py                     # benchmark entrypoint
 └── uv.lock
 ```
 
@@ -95,7 +96,15 @@ pytest
 
 Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic=books-cobol-copy), both parser implementations will execute the same data transformations:
   * **Parse the fixed-length file** accoding to the **copybook** and convert it into a tabular analytical file (Parquet) and store it on disk
-  * Apply a set of **validation rules** to the parquet file, generating a new column for each validation rule to the resulting dataframe for storing the validation results
+  * Apply a set of **validation rules** defined using a [formula language](formulas.txt) to the parquet file, generating a new column for each validation rule
+
+The resulting dataframe is composed of 2 main blocks:
+  - One column per field defined in the copybook (NAME, YEAR and AMOUNT with the sample copybook)
+  - One column per validation rule defined in the [formulas.txt](formulas.txt) file (VALID_NAME, VALID_YEAR, VALID_AMOUNT)
+
+A visual representation of the expected results is depicted in the following screenshot:
+
+![Resulting dataframe](docs/resulting_dataframe.jpg)
 
 Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
   * Apache Arrow
@@ -133,12 +142,12 @@ The sample file will contain around **32,540,000** records.
 From project root:
 
 ```console
-uv run run.py
+uv run benchmark.py
 ```
-The run.py file will track the execution time of the following stages:
+The `benchmark.py` script tracks the execution time of the following stages:
 
-1. **Stage 1** — [`main()`](packages/file_parser/src/file_parser/main.py) converts the fixed-width file to an analytics-friendly Apache Parquet on disk
-2. **Stage 2** — [`formulas_etl`](run.py) applies `formulas.txt` (validations and derived columns) and stores the results on disk.
+1. **Stage 1** — [`parse()`](packages/file_parser/src/file_parser/main.py) converts the fixed-width file to an analytics-friendly Apache Parquet on disk
+2. **Stage 2** — [`formulas_etl`](benchmark.py) applies `formulas.txt` (validations and derived columns) and stores the results on disk.
 
 The typical execution times of each implementation are the following:
 

@@ -3,7 +3,6 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-import polars as pl
 from file_parser.main import parse
 from file_parser.parsers.polars import file_parser
 from file_parser.utils import get_schema_from_copybook, remove_file_or_tree
@@ -22,14 +21,6 @@ COPYBOOK = """
 """
 
 
-def formulas_etl(
-    df: pl.LazyFrame,
-    formulas_path: Path = FORMULAS_PATH,
-) -> pl.LazyFrame:
-    """Apply validations and derived columns from a formulas file."""
-    return compute(formulas_path, df)
-
-
 if __name__ == "__main__":
     print(f"Reading fixed-length file using {file_parser.__module__}")
 
@@ -40,7 +31,8 @@ if __name__ == "__main__":
 
     print(f"Stage 1 (Conversion to parquet) COMPLETED IN: {t1 - t0:.3f}s")
 
-    result_lf = formulas_etl(input_df)
+    result_lf = compute(FORMULAS_PATH, input_df)
+
     result_lf.sink_parquet(OUTPUT_PATH)
     t2 = time.perf_counter()
 
