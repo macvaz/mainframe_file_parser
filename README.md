@@ -96,7 +96,7 @@ pytest
 
 Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic=books-cobol-copy), both parser implementations will execute the same data transformations:
   * **Parse the fixed-length file** accoding to the **copybook** and convert it into a tabular analytical file (Parquet) and store it on disk
-  * Apply a set of **validation rules** defined using a [formula language](formulas.txt) to the parquet file, generating a new column for each validation rule
+  * Apply to the parquet file a set of **validation formulas** defined using a [formula language](formulas.txt), generating a new column for each validation formula
 
 The sample copybook used is the following:
 
@@ -109,7 +109,7 @@ The sample copybook used is the following:
 
 The resulting dataframe is composed of 2 main blocks:
   - One column per field defined in the copybook (FULL_NAME, YEAR and AMOUNT)
-  - One column per validation rule defined in the [formulas.txt](formulas.txt) file (VALID_NAME, VALID_YEAR, VALID_AMOUNT)
+  - One column per validation formula defined in the [formulas.txt](formulas.txt) file (VALID_NAME, VALID_YEAR, VALID_AMOUNT)
 
 A visual representation of the expected results is depicted in the following screenshot:
 
