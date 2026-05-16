@@ -10,7 +10,7 @@ from file_parser.types import FileSchema, MainframeParser
 from file_parser.utils import get_total_length, scan_parquet_output
 
 
-def main(
+def parse(
     input_path: str,
     output_path: str,
     schema: FileSchema,

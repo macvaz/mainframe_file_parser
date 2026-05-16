@@ -3,8 +3,8 @@ from __future__ import annotations
 from decimal import Decimal
 from pathlib import Path
 
+from file_parser import get_schema_from_copybook
 from file_parser.parsers.polars.utils import parse_file_according_to_schema
-from file_parser.utils.cobol import get_schema_from_copybook
 
 _COPYBOOK = """
        01  FILE-RECORD.

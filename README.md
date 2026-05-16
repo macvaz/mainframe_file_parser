@@ -19,15 +19,15 @@ mainframe_validator/
 ├── bin/
 │   ├── build_rust_extension.sh      # build/install Rust parser wheel
 │   └── generate_huge_ascii_file.py  # generate fixed-width sample data
-├── data/                            # sample files (gitignored)
+├── data/                            # data files (gitignored)
 ├── docs/
 │   └── cpu_utilization.png
 ├── notebooks/
 │   └── exploration.ipynb
 ├── packages/
-│   ├── file_parser/              
-│   │   ├── rust/                    # Rust extension code
-│   │   │   └── src/lib.rs
+│   ├── file_parser/                 # fixed-length file parser from a cobol copybook
+│   │   ├── rust/                    
+│   │   │   └── src/lib.rs           # Rust extension code
 │   │   ├── src/file_parser/
 │   │   │   ├── main.py
 │   │   │   ├── parsers/
@@ -41,15 +41,16 @@ mainframe_validator/
 │   │   │       └── file_utils.py
 │   │   ├── tests/
 │   │   └── typings/mainframe_tools/
-│   └── formula_engine/              # validation expression engine (Lark + Polars)
+│   └── formula_engine/              # Formula language for validations and derived data
 │       ├── src/formula_engine/
 │       │   ├── engine.py
 │       │   ├── grammar/
 │       │   └── graph/
 │       └── tests/
 ├── conftest.py
+├── formulas.txt                     # formulas to be executed by the run.py command
 ├── pyproject.toml                   # workspace root (uv)
-├── run.py                           # benchmark entrypoint
+├── run.py                           # benchmark code
 └── uv.lock
 ```
 

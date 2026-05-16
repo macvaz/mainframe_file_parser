@@ -32,23 +32,13 @@ def load_formulas(path: str | Path) -> str:
     return Path(path).read_text(encoding="utf-8")
 
 
-def compute(
-    formulas: str,
-    datapoints_df: pl.DataFrame | pl.LazyFrame,
-) -> pl.DataFrame | pl.LazyFrame:
+def compute(path: str | Path, datapoints_lf: pl.LazyFrame) -> pl.LazyFrame:
     """Evaluate formulas and append each result as a new column."""
+    formulas = load_formulas(path)
     assignments = parse_formulas(formulas)
     dag = create_dag(assignments)
     for indicator_name, indicator_info in execution_order(dag, assignments):
-        datapoints_df = datapoints_df.with_columns(
+        datapoints_lf = datapoints_lf.with_columns(
             indicator_info.expr.alias(indicator_name)
         )
-    return datapoints_df
-
-
-def compute_from_path(
-    path: str | Path,
-    datapoints_df: pl.DataFrame | pl.LazyFrame,
-) -> pl.DataFrame | pl.LazyFrame:
-    """Load formulas from a file and evaluate them on ``datapoints_df``."""
-    return compute(load_formulas(path), datapoints_df)
+    return datapoints_lf

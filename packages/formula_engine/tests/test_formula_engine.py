@@ -6,8 +6,7 @@ from typing import cast
 
 import polars as pl
 import pytest
-
-from formula_engine import FormulaSyntaxError, compute, compute_from_path, parse_formulas
+from formula_engine import FormulaSyntaxError, compute, parse_formulas
 from formula_engine.graph.dag import create_dag, execution_order
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -32,14 +31,14 @@ b: PROD({a}, 2)
 
 
 def test_sample_validation_formulas() -> None:
-    df = pl.DataFrame(
+    lf = pl.LazyFrame(
         {
             "FULL_NAME": ["123456789", "1234567890"],
             "YEAR": [1950, 1899],
             "AMOUNT": [Decimal("100.00"), Decimal("999999999.99")],
         }
     )
-    out = cast(pl.DataFrame, compute_from_path(SAMPLE_VALIDATIONS, df))
+    out = cast(pl.DataFrame, compute(SAMPLE_VALIDATIONS, lf).collect())
 
     assert out["VALID_NAME"].to_list() == [True, False]
     assert out["VALID_YEAR"].to_list() == [True, False]
@@ -50,13 +49,13 @@ def test_sample_validation_formulas() -> None:
 
 
 def test_sample_derivative_formulas() -> None:
-    df = pl.DataFrame(
+    lf = pl.LazyFrame(
         {
             "YEAR": [1950, 1899],
             "AMOUNT": [Decimal("100.00"), Decimal("999999999.99")],
         }
     )
-    out = cast(pl.DataFrame, compute_from_path(SAMPLE_DERIVATIVE, df))
+    out = cast(pl.DataFrame, compute(SAMPLE_DERIVATIVE, lf).collect())
 
     assert out["IND_AMOUNT_PLUS_YEAR"].to_list() == [
         Decimal("2050.00"),
@@ -70,8 +69,12 @@ def test_sample_derivative_formulas() -> None:
 
 def test_compute_from_inline_validation_formulas() -> None:
     formulas = "VALID_NAME: LEN({FULL_NAME}) == 9"
-    df = pl.DataFrame({"FULL_NAME": ["abcdefghi", "abcdefghij"]})
-    out = cast(pl.DataFrame, compute(formulas, df))
+    lf = pl.LazyFrame({"FULL_NAME": ["abcdefghi", "abcdefghij"]})
+    assignments = parse_formulas(formulas)
+    dag = create_dag(assignments)
+    for name, info in execution_order(dag, assignments):
+        lf = lf.with_columns(info.expr.alias(name))
+    out = cast(pl.DataFrame, lf.collect())
     assert out["VALID_NAME"].to_list() == [True, False]
 
 
