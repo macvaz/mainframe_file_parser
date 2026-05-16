@@ -26,7 +26,7 @@ For readability reasons, the most relevant project folders and files are hightli
  ├── data/                            # Data files (gitignored)
  ├── docs/
  ├── notebooks/
- ├── packages/
++├── packages/                        # Mono repo folder with different packages
 +│   ├── file_parser/                 # Fixed-length file parser from a cobol copybook
  │   │   ├── rust/
  │   │   │   └── src/lib.rs           # Rust extension code
