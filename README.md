@@ -111,6 +111,14 @@ The resulting dataframe is composed of 2 main blocks:
   - One column per field defined in the copybook (FULL_NAME, YEAR and AMOUNT)
   - One column per validation formula defined in the [formulas.txt](formulas.txt) file (VALID_NAME, VALID_YEAR, VALID_AMOUNT)
 
+A sample list of declarative validation formulas is the following:
+
+```SQL
+VALID_NAME: LEN({FULL_NAME}) == 9
+VALID_YEAR: BETWEEN({YEAR}, 1900, 2026)
+VALID_AMOUNT: BETWEEN({AMOUNT}, 0, 672581176.44)
+```
+
 A visual representation of the expected results is depicted in the following screenshot:
 
 ![Resulting dataframe](docs/resulting_dataframe.jpg)
