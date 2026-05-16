@@ -7,7 +7,7 @@ High-performing Python-based tool for parsing fixed-width mainframe files. This 
 According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), Rust is well-known as one of the fastest programming languages in execution time. Python is also known as one of the slowest.
 
 The main goal of this repo is to benchmark two different implementations:
-* a [Python](packages/file_validator/src/file_validator/parsers/polars/parser.py) parser (based on **polars** analytical library)
+* a [Python](packages/file_validator/src/file_validator/parsers/polars/parser.py) parser (based on [polars](https://github.com/pola-rs/polars) analytical library)
 * a [Rust](packages/file_validator/rust/src/lib.rs) parser developed from the scratch
 
 ## 2. File parsing logic
@@ -86,7 +86,7 @@ To implement the CI pipelines, mainstream open-source development tools are used
 
 Unit and integration testing is based on **pytest**.
 
-Assuming virtual environment is activated, these are some commands typically used in CI pipelines:
+Assuming virtual environment is activated, these are suv ome commands typically used in CI pipelines:
 
 ```console
 # Linting and formatting
