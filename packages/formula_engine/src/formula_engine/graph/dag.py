@@ -1,35 +1,32 @@
-from typing import List
+from __future__ import annotations
+
 import rustworkx as rx
 
 from formula_engine.common.types import Assignment
 
 
-def create_dag(formulas: List[Assignment]):
+def create_dag(formulas: list[Assignment]) -> rx.PyDiGraph:
     dag = rx.PyDiGraph()
+    node_map: dict[str, int] = {}
 
-    node_map = {}
-
-    # Adding nodes
     for indicator_name, _ in formulas:
         node_map[indicator_name] = dag.add_node(indicator_name)
 
-    # Adding edges
     for indicator_name, indicator_info in formulas:
-        source_node = node_map[indicator_name]
-        for target_name in indicator_info.references:
-            if target_name in node_map:
-                target_node = node_map[target_name]
-                dag.add_edge(
-                    source_node, target_node, f"{indicator_name} -> {target_name}"
-                )
+        indicator_node = node_map[indicator_name]
+        for ref_name in indicator_info.references:
+            if ref_name in node_map:
+                ref_node = node_map[ref_name]
+                dag.add_edge(ref_node, indicator_node, f"{ref_name} -> {indicator_name}")
 
     return dag
 
 
-def iterate_by_generation(dag):
-    generations = rx.topological_generations(dag)
-
-    print("--- Execution Plan ---")
-    for i, gen in enumerate(generations):
-        node_names = [dag[idx] for idx in gen]
-        print(f"Generation {i}: {node_names}")
+def execution_order(dag: rx.PyDiGraph, formulas: list[Assignment]) -> list[Assignment]:
+    """Return assignments in dependency order (dependencies before dependents)."""
+    by_name = {name: (name, info) for name, info in formulas}
+    ordered: list[Assignment] = []
+    for generation in rx.topological_generations(dag):
+        for node_idx in generation:
+            ordered.append(by_name[dag[node_idx]])
+    return ordered

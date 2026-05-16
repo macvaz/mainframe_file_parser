@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
+from typing import cast
 
 import polars as pl
-
 from file_validator.main import main
 from file_validator.parsers.polars import file_parser
 from file_validator.utils import get_schema_from_copybook, remove_file_or_tree
+from formula_engine import compute_from_path
 
 INPUT_PATH = "data/huge_fixed_size_file.dat"
 INTERMEDIATE_OUTPUT_PATH = "data/huge_fixed_size_file.parquet"
 OUTPUT_PATH = "data/huge_fixed_size_file_validations.parquet"
+FORMULAS_PATH = Path(__file__).resolve().parent / "formulas.txt"
 
 COPYBOOK = """
        01  FILE-RECORD.
@@ -20,15 +23,11 @@ COPYBOOK = """
 """
 
 
-def validation_etl(df: pl.LazyFrame) -> pl.LazyFrame:
-    return df.with_columns(
-        VALID_NAME=pl.col("FULL_NAME").str.len_bytes() == 9,
-        VALID_YEAR=pl.col("YEAR").is_between(1900, 2000),
-        VALID_AMOUNT=pl.col("AMOUNT").is_between(0, 672581176.44),
-        VALID_NAME_2=pl.col("FULL_NAME").str.len_bytes() == 10,
-        VALID_YEAR_2=pl.col("YEAR").is_between(1900, 1950),
-        VALID_AMOUNT_2=pl.col("AMOUNT").is_between(0, 2281176.44),
-    )
+def validation_etl(
+    df: pl.LazyFrame,
+    formulas_path: Path = FORMULAS_PATH,
+) -> pl.LazyFrame:
+    return cast(pl.LazyFrame, compute_from_path(formulas_path, df))
 
 
 if __name__ == "__main__":

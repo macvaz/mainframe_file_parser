@@ -1,23 +1,70 @@
 from __future__ import annotations
 
+from decimal import Decimal
+from pathlib import Path
 from typing import cast
 
 import polars as pl
+import pytest
 
-from formula_engine.grammar.grammar import parser
-from formula_engine.grammar.transformers.polars_transformer import PolarsTransformer
+from formula_engine import FormulaSyntaxError, compute, compute_from_path, parse_formulas
+from formula_engine.graph.dag import create_dag, execution_order
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+SAMPLE_VALIDATIONS = FIXTURES / "sample_validations.formulas"
 
 
 def test_polars_transformer_builds_indicator_columns() -> None:
     indicators = """
-a: SUM({SUM_1}, x)
+a: SUM({SUM_1}, {x})
 b: PROD({a}, 2)
 """
-    assignments = PolarsTransformer().transform(parser.parse(indicators))
+    assignments = parse_formulas(indicators)
+    dag = create_dag(assignments)
     lf = pl.LazyFrame({"SUM_1": [1.0, 2.0], "x": [3.0, 4.0]})
-    for name, info in assignments:
+    for name, info in execution_order(dag, assignments):
         lf = lf.with_columns(info.expr.alias(name))
 
     out = cast(pl.DataFrame, lf.collect())
     assert out["a"].to_list() == [4.0, 6.0]
     assert out["b"].to_list() == [8.0, 12.0]
+
+
+def test_sample_validation_formulas() -> None:
+    df = pl.DataFrame(
+        {
+            "FULL_NAME": ["123456789", "1234567890"],
+            "YEAR": [1950, 1899],
+            "AMOUNT": [Decimal("100.00"), Decimal("999999999.99")],
+        }
+    )
+    out = cast(pl.DataFrame, compute_from_path(SAMPLE_VALIDATIONS, df))
+
+    assert out["VALID_NAME"].to_list() == [True, False]
+    assert out["VALID_YEAR"].to_list() == [True, False]
+    assert out["VALID_AMOUNT"].to_list() == [True, False]
+    assert out["VALID_NAME_2"].to_list() == [False, True]
+    assert out["VALID_YEAR_2"].to_list() == [True, False]
+    assert out["VALID_AMOUNT_2"].to_list() == [True, False]
+
+
+def test_compute_from_inline_validation_formulas() -> None:
+    formulas = "VALID_NAME: LEN({FULL_NAME}) == 9"
+    df = pl.DataFrame({"FULL_NAME": ["abcdefghi", "abcdefghij"]})
+    out = cast(pl.DataFrame, compute(formulas, df))
+    assert out["VALID_NAME"].to_list() == [True, False]
+
+
+@pytest.mark.parametrize(
+    "formula",
+    [
+        "VALID_NAME: LEN(FULL_NAME) == 9",
+        "VALID_YEAR: BETWEEN(YEAR, 1900, 2000)",
+        "a: SUM(SUM_1, {x})",
+        "VALID_NAME: {FULL_NAME} == NAME",
+        "b: PROD(a, 2)",
+    ],
+)
+def test_bare_column_or_indicator_reference_requires_braces(formula: str) -> None:
+    with pytest.raises(FormulaSyntaxError, match="braces|Bare reference"):
+        parse_formulas(formula)
