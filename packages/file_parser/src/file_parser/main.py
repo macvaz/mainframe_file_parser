@@ -6,8 +6,8 @@ from pathlib import Path
 
 import polars as pl
 
-from file_validator.types import FileSchema, MainframeParser
-from file_validator.utils import get_total_length, scan_parquet_output
+from file_parser.types import FileSchema, MainframeParser
+from file_parser.utils import get_total_length, scan_parquet_output
 
 
 def main(

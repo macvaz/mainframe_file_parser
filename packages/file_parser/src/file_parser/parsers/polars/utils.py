@@ -7,7 +7,7 @@ from pathlib import Path
 
 import polars as pl
 
-from file_validator.types import ColumnDefinition, FileSchema
+from file_parser.types import ColumnDefinition, FileSchema
 
 _DECIMAL_RE = re.compile(r"^decimal\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$", re.IGNORECASE)
 

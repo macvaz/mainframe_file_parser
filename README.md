@@ -7,8 +7,8 @@ High-performing Python-based tool for parsing fixed-width mainframe files. This 
 According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), Rust is well-known as one of the fastest programming languages in execution time. Python is also known as one of the slowest.
 
 The main goal of this repo is to benchmark two different implementations:
-* a [Python](packages/file_validator/src/file_validator/parsers/polars/parser.py) parser (based on [polars](https://github.com/pola-rs/polars) analytical library)
-* a [Rust](packages/file_validator/rust/src/lib.rs) parser developed from the scratch
+* a [Python](packages/file_parser/src/file_parser/parsers/polars/parser.py) parser (based on [polars](https://github.com/pola-rs/polars) analytical library)
+* a [Rust](packages/file_parser/rust/src/lib.rs) parser developed from the scratch
 
 ## 2. Project structure and setup
 
@@ -25,10 +25,10 @@ mainframe_validator/
 ├── notebooks/
 │   └── exploration.ipynb
 ├── packages/
-│   ├── file_validator/              
+│   ├── file_parser/              
 │   │   ├── rust/                    # Rust extension code
 │   │   │   └── src/lib.rs
-│   │   ├── src/file_validator/
+│   │   ├── src/file_parser/
 │   │   │   ├── main.py
 │   │   │   ├── parsers/
 │   │   │   │   ├── polars/          # Polars-based parser
@@ -136,15 +136,15 @@ uv run run.py
 ```
 The run.py file will track the execution time of the following stages:
 
-1. **Stage 1** — [`main()`](packages/file_validator/src/file_validator/main.py) converts the fixed-width file to an analytics-friendly Apache Parquet on disk
+1. **Stage 1** — [`main()`](packages/file_parser/src/file_parser/main.py) converts the fixed-width file to an analytics-friendly Apache Parquet on disk
 2. **Stage 2** — [`formulas_etl`](run.py) applies `formulas.txt` (validations and derived columns) and stores the results on disk.
 
 The typical execution times of each implementation are the following:
 
 | Backend | Time (same workload, same machine) | CPU during conversion |
 | --- | ---: | --- |
-| **Pure Rust** (`file_validator.parsers.rust`) | **~10 s** (typical) | High utilization across cores |
-| **Python using Polars** (`file_validator.parsers.polars`) | **~10 s** (typical) | High utilization across cores |
+| **Pure Rust** (`file_parser.parsers.rust`) | **~10 s** (typical) | High utilization across cores |
+| **Python using Polars** (`file_parser.parsers.polars`) | **~10 s** (typical) | High utilization across cores |
 
 ## 6. Conclusions
 

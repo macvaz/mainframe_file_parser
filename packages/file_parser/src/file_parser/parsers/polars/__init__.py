@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from file_validator.types import MainframeParser
+from file_parser.types import MainframeParser
 
 from .parser import parse_and_write_parquet
 

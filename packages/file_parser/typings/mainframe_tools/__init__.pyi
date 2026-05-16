@@ -1,12 +1,12 @@
 """Type stubs for the ``mainframe_tools`` Rust extension (see ``rust/src/lib.rs``).
 
-``schema`` must match ``file_validator.types.FileSchema``: an ordered list of
-:class:`~file_validator.types.ColumnDefinition`.
+``schema`` must match ``file_parser.types.FileSchema``: an ordered list of
+:class:`~file_parser.types.ColumnDefinition`.
 """
 
 from __future__ import annotations
 
-from file_validator.types import FileSchema
+from file_parser.types import FileSchema
 
 def parse_and_write_parquet(
     input_path: str,

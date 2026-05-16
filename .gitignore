@@ -10,5 +10,5 @@ packages/**/*.egg-info/
 
 # Virtual environments
 .venv
-packages/file_validator/rust/target/
+packages/file_parser/rust/target/
 data

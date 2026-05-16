@@ -2,10 +2,10 @@
 """Generate a huge line-oriented fixed-width ASCII file from a COBOL copybook.
 
 Record layout and field widths are taken from the copybook (see
-:func:`file_validator.utils.cobol.get_schema_from_copybook`). Data generation is
+:func:`file_parser.utils.cobol.get_schema_from_copybook`). Data generation is
 driven only by column **type** (``string``, ``integer``, ``decimal``), not by
 field names. Each line is the fixed-width payload plus a single ``\\n`` (use
-:func:`file_validator.utils.file_utils.get_total_length` with
+:func:`file_parser.utils.file_utils.get_total_length` with
 ``line_terminated=True`` for full record size).
 
 Only these kinds are supported for random data: **string**, **integer**,
@@ -26,9 +26,9 @@ _SRC = _ROOT / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from file_validator.types import ColumnDefinition, FileSchema  # noqa: E402
-from file_validator.utils.cobol import get_schema_from_copybook  # noqa: E402
-from file_validator.utils.file_utils import get_total_length  # noqa: E402
+from file_parser.types import ColumnDefinition, FileSchema  # noqa: E402
+from file_parser.utils.cobol import get_schema_from_copybook  # noqa: E402
+from file_parser.utils.file_utils import get_total_length  # noqa: E402
 
 DEFAULT_TARGET_BYTES = 2 * 1024**3  # 2 GiB
 

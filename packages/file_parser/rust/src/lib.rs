@@ -202,7 +202,7 @@ fn parse_and_write_parquet(
     rows_per_batch: usize, // Internal batching for memory management
 ) -> PyResult<()> {
     std::fs::create_dir_all(&output_folder).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-    // 1. Setup Schema — ``schema`` is ``list[ColumnDefinition]`` (see ``file_validator.types``).
+    // 1. Setup Schema — ``schema`` is ``list[ColumnDefinition]`` (see ``file_parser.types``).
     let list = schema.downcast::<PyList>().map_err(|_| {
         PyRuntimeError::new_err("schema must be a list of ColumnDefinition")
     })?;

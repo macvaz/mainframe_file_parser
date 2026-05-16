@@ -4,7 +4,7 @@ Reads **line-delimited** records via :func:`polars.scan_csv` (one ``raw`` column
 parses fields with ``str.slice`` / ``strip_chars`` / ``cast`` in the Polars engine,
 and writes a single Snappy Parquet file under the output folder.
 
-For throughput on huge files, prefer ``file_validator.parsers.rust.file_parser``;
+For throughput on huge files, prefer ``file_parser.parsers.rust.file_parser``;
 this path is simple and I/O- and engine-streaming-friendly, not multi-process.
 """
 
@@ -12,8 +12,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from file_validator.types import FileSchema
-from file_validator.utils import PARQUET_OUTPUT_FILENAME
+from file_parser.types import FileSchema
+from file_parser.utils import PARQUET_OUTPUT_FILENAME
 
 from . import utils
 

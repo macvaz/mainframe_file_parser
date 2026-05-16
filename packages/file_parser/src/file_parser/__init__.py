@@ -1,4 +1,4 @@
-"""file_validator package."""
+"""file_parser package."""
 
 from __future__ import annotations
 

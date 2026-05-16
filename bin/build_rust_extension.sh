@@ -3,8 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-RUST_MANIFEST="${ROOT_DIR}/packages/file_validator/rust/Cargo.toml"
-WHEEL_DIR="${ROOT_DIR}/packages/file_validator/rust/target/wheels"
+RUST_MANIFEST="${ROOT_DIR}/packages/file_parser/rust/Cargo.toml"
+WHEEL_DIR="${ROOT_DIR}/packages/file_parser/rust/target/wheels"
 VENV_PYTHON="${ROOT_DIR}/.venv/bin/python"
 
 if [[ -f "${HOME}/.cargo/env" ]]; then

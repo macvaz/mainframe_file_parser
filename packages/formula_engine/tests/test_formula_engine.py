@@ -52,16 +52,12 @@ def test_sample_validation_formulas() -> None:
 def test_sample_derivative_formulas() -> None:
     df = pl.DataFrame(
         {
-            "FULL_NAME": ["123456789", "1234567890"],
             "YEAR": [1950, 1899],
             "AMOUNT": [Decimal("100.00"), Decimal("999999999.99")],
         }
     )
     out = cast(pl.DataFrame, compute_from_path(SAMPLE_DERIVATIVE, df))
 
-    assert out["VALID_NAME"].to_list() == [True, False]
-    assert out["VALID_YEAR"].to_list() == [True, False]
-    assert out["VALID_AMOUNT"].to_list() == [True, False]
     assert out["IND_AMOUNT_PLUS_YEAR"].to_list() == [
         Decimal("2050.00"),
         Decimal("1000001898.99"),

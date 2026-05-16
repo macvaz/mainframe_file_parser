@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from file_validator.utils.cobol import get_schema_from_copybook
-from file_validator.types import ColumnDefinition
+from file_parser.utils.cobol import get_schema_from_copybook
+from file_parser.types import ColumnDefinition
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "sample_file_record.cpy"
 

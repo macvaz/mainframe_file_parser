@@ -6,7 +6,7 @@ from typing import cast
 import polars as pl
 import pytest
 
-from file_validator.types import ColumnDefinition
+from file_parser.types import ColumnDefinition
 
 RECORD_SIZE = 66
 # Same layout as run.py / copybook: PIC 9(9)V99 → 11 positions, 2 implied decimals.

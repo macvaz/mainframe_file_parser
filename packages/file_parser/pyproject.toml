@@ -1,5 +1,5 @@
 [project]
-name = "file-validator"
+name = "file-parser"
 version = "0.1.0"
 description = "Parse fixed-width mainframe files and validate with Polars"
 requires-python = ">=3.12"

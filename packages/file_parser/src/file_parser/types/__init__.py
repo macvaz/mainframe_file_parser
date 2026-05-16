@@ -24,8 +24,8 @@ class MainframeParser(Protocol):
 
     The Rust backend writes ``shard_*.parquet`` parts; the Polars backend writes a
     single ``data.parquet``. Each backend exposes ``file_parser`` from its package,
-    for example ``from file_validator.parsers.rust import file_parser`` or
-    ``from file_validator.parsers.polars import file_parser``.
+    for example ``from file_parser.parsers.rust import file_parser`` or
+    ``from file_parser.parsers.polars import file_parser``.
     """
 
     def __call__(

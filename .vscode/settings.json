@@ -1,11 +1,11 @@
 {
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
     "python.analysis.extraPaths": [
-        "packages/file_validator/src",
+        "packages/file_parser/src",
         "packages/formula_engine/src"
     ],
     "python.testing.pytestArgs": [
-        "packages/file_validator/tests",
+        "packages/file_parser/tests",
         "packages/formula_engine/tests"
     ],
     "python.testing.unittestEnabled": false,

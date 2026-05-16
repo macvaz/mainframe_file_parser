@@ -11,7 +11,7 @@ from python_cobol.python_cobol import (
     parse_cobol,
 )
 
-from file_validator.types import ColumnDefinition, FileSchema
+from file_parser.types import ColumnDefinition, FileSchema
 
 
 def _margin_lines(text: str) -> list[str]:

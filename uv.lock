@@ -4,7 +4,7 @@ requires-python = ">=3.12"
 
 [manifest]
 members = [
-    "file-validator",
+    "file-parser",
     "formula-engine",
     "mainframe-validator",
 ]
@@ -142,9 +142,9 @@ wheels = [
 ]
 
 [[package]]
-name = "file-validator"
+name = "file-parser"
 version = "0.1.0"
-source = { editable = "packages/file_validator" }
+source = { editable = "packages/file_parser" }
 dependencies = [
     { name = "polars" },
     { name = "python-cobol" },
@@ -303,7 +303,7 @@ name = "mainframe-validator"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "file-validator" },
+    { name = "file-parser" },
     { name = "formula-engine" },
 ]
 
@@ -317,7 +317,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "file-validator", editable = "packages/file_validator" },
+    { name = "file-parser", editable = "packages/file_parser" },
     { name = "formula-engine", editable = "packages/formula_engine" },
 ]
 

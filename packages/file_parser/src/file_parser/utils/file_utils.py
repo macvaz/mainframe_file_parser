@@ -7,16 +7,16 @@ from pathlib import Path
 
 import polars as pl
 
-from file_validator.types import FileSchema
+from file_parser.types import FileSchema
 
 # Single Snappy Parquet file written by the Polars parser (not Rust shard parts).
 PARQUET_OUTPUT_FILENAME = "data.parquet"
 
 
 def get_total_length(schema: FileSchema, *, line_terminated: bool = False) -> int:
-    """Fixed bytes per record from a :class:`~file_validator.types.FileSchema` layout.
+    """Fixed bytes per record from a :class:`~file_parser.types.FileSchema` layout.
 
-    ``FileSchema`` is an ordered list of :class:`~file_validator.types.ColumnDefinition`.
+    ``FileSchema`` is an ordered list of :class:`~file_parser.types.ColumnDefinition`.
     Returns ``max(start + length)`` over all columns. If records end with a line-feed
     after the payload (typical for generated ASCII fixtures), pass
     ``line_terminated=True`` to add one byte.
