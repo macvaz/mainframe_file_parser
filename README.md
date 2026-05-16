@@ -22,7 +22,7 @@ Both versions rely on open-source high-performing analytical libraries, enabling
 
 ## 3. Project structure and setup
 
-The project is structured following a monorepo setup. Several python packages can be found in the **packages** folder.
+The project is structured following a monorepo setup. Several python packages can be found in the [packages](packages/) folder.
 
 ```
 mainframe_validator/
@@ -36,7 +36,7 @@ mainframe_validator/
 │   └── exploration.ipynb
 ├── packages/
 │   ├── file_validator/              # fixed-width → Parquet pipeline
-│   │   ├── rust/                    # Rust parser (PyO3, Arrow, Parquet)
+│   │   ├── rust/                    # Rust extension code
 │   │   │   └── src/lib.rs
 │   │   ├── src/file_validator/
 │   │   │   ├── main.py
