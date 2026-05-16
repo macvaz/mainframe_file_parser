@@ -89,6 +89,8 @@ ty check .
 pytest
 ```
 
+Currently, the CI pipeline is implemented on top of Github Actions.
+
 ## 4. Functional scope
 
 Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic=books-cobol-copy), both parser implementations will execute the same data transformations:
