@@ -20,6 +20,7 @@ For readability reasons, the most relevant project folders and files are hightli
 
 ```diff
  mainframe_validator/
++├── .github                          # Github Actions CI pipelines  
  ├── bin/
  ├── data/                            # Data files (gitignored)
  ├── docs/
@@ -89,7 +90,7 @@ ty check .
 pytest
 ```
 
-Currently, the CI pipeline is implemented on top of Github Actions.
+Currently, the CI pipeline is implemented on top of **Github Actions**.
 
 ## 4. Functional scope
 
