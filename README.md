@@ -20,7 +20,58 @@ Both versions rely on open-source high-performing analytical libraries, enabling
   * Apache Arrow
   * SIMD vectorized CPU instructions
 
-## 3. CI pipelines
+## 3. Project structure and setup
+
+The project is structured following a monorepo setup. Several python packages can be found in the **packages** folder.
+
+```
+mainframe_validator/
+├── bin/
+│   ├── build_rust_extension.sh      # build/install Rust parser wheel
+│   └── generate_huge_ascii_file.py  # generate fixed-width sample data
+├── data/                            # sample files (gitignored)
+├── docs/
+│   └── cpu_utilization.png
+├── notebooks/
+│   └── exploration.ipynb
+├── packages/
+│   ├── file_validator/              # fixed-width → Parquet pipeline
+│   │   ├── rust/                    # Rust parser (PyO3, Arrow, Parquet)
+│   │   │   └── src/lib.rs
+│   │   ├── src/file_validator/
+│   │   │   ├── main.py
+│   │   │   ├── parsers/
+│   │   │   │   ├── polars/          # Polars-based parser
+│   │   │   │   │   ├── parser.py
+│   │   │   │   │   └── utils.py
+│   │   │   │   └── rust/            # Python bindings to Rust extension
+│   │   │   ├── types/
+│   │   │   └── utils/               # COBOL copybook → schema, I/O helpers
+│   │   │       ├── cobol.py
+│   │   │       └── file_utils.py
+│   │   ├── tests/
+│   │   └── typings/mainframe_tools/
+│   └── formula_engine/              # validation expression engine (Lark + Polars)
+│       ├── src/formula_engine/
+│       │   ├── engine.py
+│       │   ├── grammar/
+│       │   └── graph/
+│       └── tests/
+├── conftest.py
+├── pyproject.toml                   # workspace root (uv)
+├── run.py                           # benchmark entrypoint
+└── uv.lock
+```
+
+The project is managed using **uv**. To create the python virtual environment and download the dependencies of all the packages, run:
+
+```bash
+uv sync --all-packages
+```
+
+Additionally, using **Jupyter notebooks** is highly recommended to quick experimentation with the code. In the [notebooks](notebooks/) folder some working examples are available.
+
+## 4. CI pipelines
 
 To implement the CI pipelines, mainstream open-source development tools are used from [astral.sh](https://astral.sh) offering:
   - **uv:** project management + dependency management
@@ -28,12 +79,6 @@ To implement the CI pipelines, mainstream open-source development tools are used
   - **ty**: fast type checker
 
 Unit and integration testing is based on **pytest**.
-
-For setting up the virtual enviroment:
-
-```bash
-uv sync --all-packages
-```
 
 Some commands typically used in CI pipelines:
 
@@ -46,10 +91,11 @@ ruff format src
 ty check src
 
 # Unit testing
-pytest
+uv run pytest # if the virtual env is not activated
+pytest # if the virtual env is activated
 ```
 
-## 4. Performance analysis
+## 5. Performance analysis
 
 ### Generating the testing file
 
@@ -95,7 +141,7 @@ The typical execution times of each implementation are the following:
 | **Pure Rust** (`file_validator.parsers.rust`) | **~10 s** (typical) | High utilization across cores |
 | **Python using Polars** (`file_validator.parsers.polars`) | **~10 s** (typical) | High utilization across cores |
 
-## 5. Conclusions
+## 6. Conclusions
 
 According to experimental results and benchmarks, the **execution wall times of both implementations are similar**.
 
