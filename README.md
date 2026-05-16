@@ -69,6 +69,12 @@ The project is managed using **uv**. To create the python virtual environment an
 uv sync --all-packages
 ```
 
+Moder IDEs will automaticaly activate the virtual environment. Otherwise just activate it manually:
+
+```console
+source .venv/bin/activate
+```
+
 Additionally, using **Jupyter notebooks** is highly recommended to quick experimentation with the code. In the [notebooks](notebooks/) folder some working examples are available.
 
 ## 4. CI pipelines
@@ -80,19 +86,18 @@ To implement the CI pipelines, mainstream open-source development tools are used
 
 Unit and integration testing is based on **pytest**.
 
-Some commands typically used in CI pipelines:
+Assuming virtual environment is activated, these are some commands typically used in CI pipelines:
 
 ```console
 # Linting and formatting
-ruff check src
-ruff format src
+ruff check .
+ruff format .
 
 # Type checking
-ty check src
+ty check .
 
 # Unit testing
-uv run pytest # if the virtual env is not activated
-pytest # if the virtual env is activated
+pytest
 ```
 
 ## 5. Performance analysis
