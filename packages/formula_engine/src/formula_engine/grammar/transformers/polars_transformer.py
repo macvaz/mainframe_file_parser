@@ -82,7 +82,9 @@ class PolarsTransformer(Transformer):
         msg = f"unknown function {name!r}"
         raise ValueError(msg)
 
-    def ref_body(self, *items: dict[str, object] | str) -> str | list[dict[str, object]]:
+    def ref_body(
+        self, *items: dict[str, object] | str
+    ) -> str | list[dict[str, object]]:
         if len(items) == 1 and isinstance(items[0], str):
             return items[0]
         return [item for item in items if isinstance(item, dict)]
@@ -137,9 +139,11 @@ def _compare(
     left: IndicatorInfo | str,
     right: IndicatorInfo | str,
 ) -> IndicatorInfo:
-    l = _as_indicator_info(left)
-    r = _as_indicator_info(right)
-    return IndicatorInfo(op(l.expr, r.expr), _merge_references(l, r))
+    left_ind = _as_indicator_info(left)
+    right_ind = _as_indicator_info(right)
+    return IndicatorInfo(
+        op(left_ind.expr, right_ind.expr), _merge_references(left_ind, right_ind)
+    )
 
 
 def _combine_bool(
@@ -147,13 +151,13 @@ def _combine_bool(
     left: IndicatorInfo | str,
     right: IndicatorInfo | str,
 ) -> IndicatorInfo:
-    l = _as_indicator_info(left)
-    r = _as_indicator_info(right)
+    left_ind = _as_indicator_info(left)
+    right_ind = _as_indicator_info(right)
     if op == "or":
-        expr = l.expr | r.expr
+        expr = left_ind.expr | right_ind.expr
     else:
-        expr = l.expr & r.expr
-    return IndicatorInfo(expr, _merge_references(l, r))
+        expr = left_ind.expr & right_ind.expr
+    return IndicatorInfo(expr, _merge_references(left_ind, right_ind))
 
 
 def _combine_numeric(
@@ -161,9 +165,11 @@ def _combine_numeric(
     left: IndicatorInfo | str,
     right: IndicatorInfo | str,
 ) -> IndicatorInfo:
-    l = _as_indicator_info(left)
-    r = _as_indicator_info(right)
-    return IndicatorInfo(op(l.expr, r.expr), _merge_references(l, r))
+    left_ind = _as_indicator_info(left)
+    right_ind = _as_indicator_info(right)
+    return IndicatorInfo(
+        op(left_ind.expr, right_ind.expr), _merge_references(left_ind, right_ind)
+    )
 
 
 def _fold_numeric(

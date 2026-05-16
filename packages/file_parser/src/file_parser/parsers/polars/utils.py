@@ -33,11 +33,7 @@ def _column_expr(raw: str, col: ColumnDefinition) -> pl.Expr:
         dtype = pl.Decimal(col.precision, col.scale)
         # COBOL implied decimal (PIC … V99): digits are unscaled; scale is metadata.
         unscaled = field.cast(pl.Int64, strict=False)
-        scaled = (
-            unscaled
-            if col.scale == 0
-            else unscaled / pl.lit(10**col.scale)
-        )
+        scaled = unscaled if col.scale == 0 else unscaled / pl.lit(10**col.scale)
         return scaled.cast(dtype, strict=False).alias(col.name)
     return field.cast(_polars_dtype(col), strict=False).alias(col.name)
 

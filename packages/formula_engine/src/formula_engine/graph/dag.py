@@ -17,7 +17,9 @@ def create_dag(formulas: list[Assignment]) -> rx.PyDiGraph:
         for ref_name in indicator_info.references:
             if ref_name in node_map:
                 ref_node = node_map[ref_name]
-                dag.add_edge(ref_node, indicator_node, f"{ref_name} -> {indicator_name}")
+                dag.add_edge(
+                    ref_node, indicator_node, f"{ref_name} -> {indicator_name}"
+                )
 
     return dag
 

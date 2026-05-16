@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from decimal import Decimal
 from pathlib import Path
+from typing import cast
+
+import polars as pl
 
 from file_parser import get_schema_from_copybook
 from file_parser.parsers.polars.utils import parse_file_according_to_schema
@@ -22,7 +25,7 @@ def test_parse_implied_decimal_amount(tmp_path: Path) -> None:
     data_file = tmp_path / "sample.dat"
     data_file.write_text(line, encoding="ascii")
 
-    df = parse_file_according_to_schema(data_file, schema).collect()
+    df = cast(pl.DataFrame, parse_file_according_to_schema(data_file, schema).collect())
 
     assert df["YEAR"].item() == 2024
     assert df["AMOUNT"].item() == Decimal("272956798.27")
@@ -35,6 +38,6 @@ def test_parse_decimal_invalid_becomes_null(tmp_path: Path) -> None:
     data_file = tmp_path / "bad.dat"
     data_file.write_text(line, encoding="ascii")
 
-    df = parse_file_according_to_schema(data_file, schema).collect()
+    df = cast(pl.DataFrame, parse_file_according_to_schema(data_file, schema).collect())
 
     assert df["AMOUNT"].item() is None

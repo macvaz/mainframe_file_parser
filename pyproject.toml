@@ -25,9 +25,15 @@ pythonPlatform = "Linux"
 venvPath = "."
 venv = ".venv"
 
+[tool.ruff]
+exclude = ["notebooks"]
+
 [tool.ty.environment]
 extra-paths = ["packages/file_parser/typings"]
 python-version = "3.12"
+
+[tool.ty.src]
+exclude = ["notebooks"]
 
 [tool.pytest.ini_options]
 testpaths = [

@@ -1,8 +1,8 @@
 # mainframe-validator
 
-High-performing Python-based tool for parsing fixed-width mainframe files. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking industry.
+High-performing Python-based tool for **parsing fixed-width mainframe files**. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking industry.
 
-Additionaly, the input file is validated based on a set of declartive validation formulas.
+Additionaly, the input file is validated based on a **set of declarative validation formulas**.
 
 ## 1. Goal
 
@@ -15,6 +15,8 @@ The main goal of this repo is to benchmark two different implementations:
 ## 2. Project structure and setup
 
 The project is structured following a monorepo setup. Several python packages can be found in the [packages](packages/) folder.
+
+For readability reasons, the most relevant project folders and files are hightlighted in the following file structure representation:
 
 ```diff
  mainframe_validator/
@@ -53,7 +55,7 @@ The project is structured following a monorepo setup. Several python packages ca
 The project is managed using **uv**. To create the python virtual environment and download the dependencies of all the packages, run:
 
 ```console
-uv sync --all-packages
+uv sync --all-packages --group dev
 ```
 
 Modern IDEs will automaticaly activate the virtual environment. Otherwise just activate it manually:
@@ -157,8 +159,8 @@ The typical execution times of each implementation are the following:
 
 | Backend | Time (same workload, same machine) | CPU during conversion |
 | --- | ---: | --- |
-| **Pure Rust** (`file_parser.parsers.rust`) | **~10 s** (typical) | High utilization across cores |
-| **Python using Polars** (`file_parser.parsers.polars`) | **~10 s** (typical) | High utilization across cores |
+| **Pure Rust** | **~10 s** (typical) | High utilization across cores |
+| **Python using Polars** | **~10 s** (typical) | High utilization across cores |
 
 ## 6. Conclusions
 

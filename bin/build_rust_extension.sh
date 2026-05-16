@@ -18,8 +18,12 @@ if ! command -v cargo >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! command -v maturin >/dev/null 2>&1; then
-  echo "error: maturin not found. Run: uv sync --group dev" >&2
+MATURIN="${ROOT_DIR}/.venv/bin/maturin"
+if [[ ! -x "${MATURIN}" ]]; then
+  MATURIN="$(command -v maturin || true)"
+fi
+if [[ -z "${MATURIN}" ]]; then
+  echo "error: maturin not found. Run: uv sync --all-packages --group dev" >&2
   exit 1
 fi
 
@@ -34,7 +38,7 @@ if [[ ! -x "${VENV_PYTHON}" ]]; then
 fi
 
 echo "Building wheel with maturin..."
-maturin build --release --manifest-path "${RUST_MANIFEST}" -o "${WHEEL_DIR}"
+"${MATURIN}" build --release --manifest-path "${RUST_MANIFEST}" -o "${WHEEL_DIR}"
 
 echo "Installing wheel into .venv..."
 uv pip install --python "${VENV_PYTHON}" --reinstall --no-deps \
