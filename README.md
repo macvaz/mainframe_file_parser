@@ -20,7 +20,8 @@ For readability reasons, the most relevant project folders and files are hightli
 
 ```diff
  mainframe_validator/
-+├── .github                          # Github Actions CI pipelines  
++├── .cursor/                         # Cursor skills for AI code assistants  
++├── .github/                         # Github Actions CI pipelines  
  ├── bin/
  ├── data/                            # Data files (gitignored)
  ├── docs/
