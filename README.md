@@ -25,7 +25,7 @@ mainframe_validator/
 ├── notebooks/
 │   └── exploration.ipynb
 ├── packages/
-│   ├── file_validator/              # fixed-width → Parquet pipeline
+│   ├── file_validator/              
 │   │   ├── rust/                    # Rust extension code
 │   │   │   └── src/lib.rs
 │   │   ├── src/file_validator/
@@ -36,7 +36,7 @@ mainframe_validator/
 │   │   │   │   │   └── utils.py
 │   │   │   │   └── rust/            # Python bindings to Rust extension
 │   │   │   ├── types/
-│   │   │   └── utils/               # COBOL copybook → schema, I/O helpers
+│   │   │   └── utils/               
 │   │   │       ├── cobol.py
 │   │   │       └── file_utils.py
 │   │   ├── tests/
@@ -137,7 +137,7 @@ uv run run.py
 The run.py file will track the execution time of the following stages:
 
 1. **Stage 1** — [`main()`](packages/file_validator/src/file_validator/main.py) converts the fixed-width file to an analytics-friendly Apache Parquet on disk
-2. **Stage 2** — [`validation_etl`](run.py) computes all file validations according to a given set of validation rules and stores the results again on disk.
+2. **Stage 2** — [`formulas_etl`](run.py) applies `formulas.txt` (validations and derived columns) and stores the results on disk.
 
 The typical execution times of each implementation are the following:
 

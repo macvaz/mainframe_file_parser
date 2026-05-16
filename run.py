@@ -23,10 +23,11 @@ COPYBOOK = """
 """
 
 
-def validation_etl(
+def formulas_etl(
     df: pl.LazyFrame,
     formulas_path: Path = FORMULAS_PATH,
 ) -> pl.LazyFrame:
+    """Apply validations and derived columns from a formulas file."""
     return cast(pl.LazyFrame, compute_from_path(formulas_path, df))
 
 
@@ -40,11 +41,11 @@ if __name__ == "__main__":
 
     print(f"Stage 1 (Conversion to parquet) COMPLETED IN: {t1 - t0:.3f}s")
 
-    validations_lf = validation_etl(input_df)
-    validations_lf.sink_parquet(OUTPUT_PATH)
+    result_lf = formulas_etl(input_df)
+    result_lf.sink_parquet(OUTPUT_PATH)
     t2 = time.perf_counter()
 
-    print(f"Stage 2 (Validation calculations) COMPLETED IN: {t2 - t1:.3f}s")
+    print(f"Stage 2 (Formulas: validations + derivatives) COMPLETED IN: {t2 - t1:.3f}s")
     print(f"Total: {t2 - t0:.3f}s")
 
     remove_file_or_tree(INTERMEDIATE_OUTPUT_PATH)

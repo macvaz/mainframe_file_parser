@@ -12,6 +12,7 @@ from formula_engine.graph.dag import create_dag, execution_order
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 SAMPLE_VALIDATIONS = FIXTURES / "sample_validations.formulas"
+SAMPLE_DERIVATIVE = FIXTURES / "sample_derivative.formulas"
 
 
 def test_polars_transformer_builds_indicator_columns() -> None:
@@ -46,6 +47,29 @@ def test_sample_validation_formulas() -> None:
     assert out["VALID_NAME_2"].to_list() == [False, True]
     assert out["VALID_YEAR_2"].to_list() == [True, False]
     assert out["VALID_AMOUNT_2"].to_list() == [True, False]
+
+
+def test_sample_derivative_formulas() -> None:
+    df = pl.DataFrame(
+        {
+            "FULL_NAME": ["123456789", "1234567890"],
+            "YEAR": [1950, 1899],
+            "AMOUNT": [Decimal("100.00"), Decimal("999999999.99")],
+        }
+    )
+    out = cast(pl.DataFrame, compute_from_path(SAMPLE_DERIVATIVE, df))
+
+    assert out["VALID_NAME"].to_list() == [True, False]
+    assert out["VALID_YEAR"].to_list() == [True, False]
+    assert out["VALID_AMOUNT"].to_list() == [True, False]
+    assert out["IND_AMOUNT_PLUS_YEAR"].to_list() == [
+        Decimal("2050.00"),
+        Decimal("1000001898.99"),
+    ]
+    assert out["IND_AMOUNT_PLUS_YEAR_DOUBLE"].to_list() == [
+        4100.0,
+        2_000_003_797.98,
+    ]
 
 
 def test_compute_from_inline_validation_formulas() -> None:
