@@ -1,6 +1,8 @@
 # mainframe-validator
 
-High-performing Python-based tool for parsing fixed-width mainframe files. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking sector.
+High-performing Python-based tool for parsing fixed-width mainframe files. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking industry.
+
+Additionaly, the input file is validated based on a set of declartive validation formulas.
 
 ## 1. Goal
 
@@ -17,16 +19,11 @@ The project is structured following a monorepo setup. Several python packages ca
 ```
 mainframe_validator/
 ├── bin/
-│   ├── build_rust_extension.sh      # build/install Rust parser wheel
-│   └── generate_huge_ascii_file.py  # generate fixed-width sample data
-├── data/                            # data files (gitignored)
+├── data/                            # Data files (gitignored)
 ├── docs/
-│   ├── cpu_utilization.png
-│   └── resulting_dataframe.jpg
 ├── notebooks/
-│   └── exploration.ipynb
 ├── packages/
-│   ├── file_parser/                 # fixed-length file parser from a cobol copybook
+│   ├── file_parser/                 # ← Fixed-length file parser from a cobol copybook
 │   │   ├── rust/                    
 │   │   │   └── src/lib.rs           # Rust extension code
 │   │   ├── src/file_parser/
@@ -38,20 +35,18 @@ mainframe_validator/
 │   │   │   │   └── rust/            # Python bindings to Rust extension
 │   │   │   ├── types/
 │   │   │   └── utils/               
-│   │   │       ├── cobol.py
-│   │   │       └── file_utils.py
 │   │   ├── tests/
 │   │   └── typings/mainframe_tools/
-│   └── formula_engine/              # Formula language for validations and derived data
+│   └── formula_engine/              # ← Formula language for validations (and derived data)
 │       ├── src/formula_engine/
 │       │   ├── engine.py
 │       │   ├── grammar/
 │       │   └── graph/
 │       └── tests/
 ├── conftest.py
-├── formulas.txt                     # formulas executed by benchmark.py
-├── pyproject.toml                   # workspace root (uv)
-├── benchmark.py                     # benchmark entrypoint
+├── formulas.txt                     # ← Formulas executed by benchmark.py
+├── pyproject.toml                   # Workspace root (uv)
+├── benchmark.py                     # ← Benchmark entrypoint
 └── uv.lock
 ```
 
