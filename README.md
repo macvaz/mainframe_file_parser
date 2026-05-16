@@ -56,7 +56,7 @@ The project is managed using **uv**. To create the python virtual environment an
 uv sync --all-packages
 ```
 
-Moder IDEs will automaticaly activate the virtual environment. Otherwise just activate it manually:
+Modern IDEs will automaticaly activate the virtual environment. Otherwise just activate it manually:
 
 ```console
 source .venv/bin/activate
