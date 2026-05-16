@@ -92,9 +92,9 @@ pytest
 
 ## 4. Functional scope
 
-Starting from a **COBOL copybook** both parser implementations will apply the same data transformations:
-  * Parse the fixed-length file accoding to the copybook and convert it into a tabular analytical file (Parquet) and store it on disk
-  * Apply a set of validation rules to the parquet file, generating a new column for each validation (for storing the validation results)
+Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic=books-cobol-copy) both parser implementations will execute the same data transformations:
+  * **Parse the fixed-length file** accoding to the **copybook** and convert it into a tabular analytical file (Parquet) and store it on disk
+  * Apply a set of **validation rules** to the parquet file, generating a new column for each validation rule to the resulting dataframe for storing the validation results
 
 Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
   * Apache Arrow
