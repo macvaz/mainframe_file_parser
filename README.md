@@ -92,7 +92,7 @@ pytest
 
 ## 4. Functional scope
 
-Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic=books-cobol-copy) both parser implementations will execute the same data transformations:
+Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic=books-cobol-copy), both parser implementations will execute the same data transformations:
   * **Parse the fixed-length file** accoding to the **copybook** and convert it into a tabular analytical file (Parquet) and store it on disk
   * Apply a set of **validation rules** to the parquet file, generating a new column for each validation rule to the resulting dataframe for storing the validation results
 
@@ -102,11 +102,11 @@ Both versions rely on open-source high-performing analytical libraries, enabling
 
 ## 5. Performance analysis
 
-### Generating the testing file
+### Generating a testing data file
 
 The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width ASCII file from an input **COBOL copybook**.
 
-During file generation, dandom values are chosen for 3 supported data types (`string`, `integer`, `decimal`). Significant free disk space (default output is at least **2 GiB**) will be required (/data folder is ignored by git).
+During file generation, random values are chosen for 3 supported data types (`string`, `integer`, `decimal`). Significant free disk space (default output is at least **2 GiB**) will be required (/data folder is ignored by git).
 
 In order to create a sample file, execute the following:
 
