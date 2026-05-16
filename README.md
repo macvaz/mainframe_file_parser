@@ -105,14 +105,14 @@ During file generation, dandom values are chosen for 3 supported data types (`st
 
 In order to create a sample file, execute the following:
 
-```bash
+```console
 uv run bin/generate_huge_ascii_file.py \
   test/fixtures/sample_file_record.cpy \
   data/huge_fixed_size_file.dat
 ```
 The copybook used for generating the sample data is as follows:
 
-```bash
+```cobol
        01  FILE-RECORD.
            05  FULL-NAME                  PIC X(50).
            05  YEAR                       PIC 9(4).
