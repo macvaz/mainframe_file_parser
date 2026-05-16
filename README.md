@@ -65,7 +65,7 @@ mainframe_validator/
 
 The project is managed using **uv**. To create the python virtual environment and download the dependencies of all the packages, run:
 
-```bash
+```console
 uv sync --all-packages
 ```
 
@@ -82,7 +82,7 @@ Unit and integration testing is based on **pytest**.
 
 Some commands typically used in CI pipelines:
 
-```bash
+```console
 # Linting and formatting
 ruff check src
 ruff format src
@@ -126,7 +126,7 @@ The sample file will contain around **32,540,000** records.
 
 From project root:
 
-```bash
+```console
 uv run run.py
 ```
 The run.py file will track the execution time of the following stages:
