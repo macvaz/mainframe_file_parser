@@ -10,17 +10,7 @@ The main goal of this repo is to benchmark two different implementations:
 * a [Python](packages/file_validator/src/file_validator/parsers/polars/parser.py) parser (based on [polars](https://github.com/pola-rs/polars) analytical library)
 * a [Rust](packages/file_validator/rust/src/lib.rs) parser developed from the scratch
 
-## 2. File parsing logic
-
-The data pipeline is the same for both implementations:
-  * Convert fixed-length file into a tabular analytical file (Parquet) and store it on disk
-  * Apply a set of validation rules to the parquet file, generating a new column for each validation (for storing the validation results)
-
-Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
-  * Apache Arrow
-  * SIMD vectorized CPU instructions
-
-## 3. Project structure and setup
+## 2. Project structure and setup
 
 The project is structured following a monorepo setup. Several python packages can be found in the [packages](packages/) folder.
 
@@ -77,7 +67,7 @@ source .venv/bin/activate
 
 Additionally, using **Jupyter notebooks** is highly recommended to quick experimentation with the code. In the [notebooks](notebooks/) folder some working examples are available.
 
-## 4. CI pipelines
+## 3. CI pipelines
 
 To implement the CI pipelines, mainstream open-source development tools are used from [astral.sh](https://astral.sh) offering:
   - **uv:** project management + dependency management
@@ -99,6 +89,16 @@ ty check .
 # Unit testing
 pytest
 ```
+
+## 4. Functional scope
+
+Starting from a **COBOL copybook** both parser implementations will apply the same data transformations:
+  * Parse the fixed-length file accoding to the copybook and convert it into a tabular analytical file (Parquet) and store it on disk
+  * Apply a set of validation rules to the parquet file, generating a new column for each validation (for storing the validation results)
+
+Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
+  * Apache Arrow
+  * SIMD vectorized CPU instructions
 
 ## 5. Performance analysis
 
