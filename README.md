@@ -109,7 +109,7 @@ ty check.................................................................Passed
 pytest...................................................................Passed
 ```
 
-Additionally, a server-side CI pipeline runs on **GitHub Actions**.
+Additionally, a server-side CI pipeline runs on [GitHub Actions](https://github.com/macvaz/mainframe_file_parser/actions).
 
 ## 4. Functional scope
 
