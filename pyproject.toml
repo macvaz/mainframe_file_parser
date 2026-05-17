@@ -43,12 +43,29 @@ testpaths = [
 markers = [
     "huge: multi-GB fixed file integration (requires pytest --run-huge)",
 ]
+addopts = ["--cov", "--cov-report=term-missing"]
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.0.0",
     "pytest>=9.0.3",
+    "pytest-cov>=6.0.0",
     "ruff>=0.15.12",
     "ty>=0.0.34",
     "ipykernel>=7.2.0", # for notebooks
 ]
+
+[tool.coverage.run]
+source = [
+    "packages/file_parser/src/file_parser",
+    "packages/formula_engine/src/formula_engine",
+]
+branch = true
+omit = [
+    "packages/file_parser/src/file_parser/parsers/rust/__init__.py",
+]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+skip_empty = true
