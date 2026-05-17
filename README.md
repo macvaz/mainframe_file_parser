@@ -71,6 +71,46 @@ Modern IDEs will automatically activate the virtual environment. Otherwise, acti
 source .venv/bin/activate
 ```
 
+### Laptop installation in corporate secured networks
+
+The installation process is different if you work for a company with high security standards where no direct pypi.org connectivy is allowed. Additionally, uv will not be able ot install python interpreters either.
+
+Under thise conditions, a professional corporate-ready deployment is the following:
+* Install [miniforge](https://github.com/conda-forge/miniforge) following your employer installation procedure.
+* Create a Python 3.12 mamba environment
+* Install uv
+* Create the project uv virtual env reusing the mamba enviroment
+* Configure your project.toml to point to a private package index
+* Resolve the dependencies using uv
+
+The complete corporate flow is the following:
+
+1. Install python interpreter and uv
+```console
+mamba create -n mainframe_validator python=3.12 -y   
+mamba activate mainframe_validator
+mamba install -c conda-forge uv
+```
+
+2. Pointing uv to you local artifactory editintg project.toml
+
+```toml
+[[tool.uv.index]]
+name = "corp-artifactory"
+url = "https://artifactory.corp.example/artifactory/api/pypi/pypi-virtual/simple"
+default = true
+```
+
+3. Installing dependencies
+
+```console
+cd <your_local_path_to_repo>/mainframe_validator
+uv venv --python "3.12"
+uv sync --all-packages --group dev
+source .venv/bin/activate
+```
+
+
 ## 3. CI pipelines
 
 CI pipelines use mainstream open-source tools from [astral.sh](https://astral.sh):
