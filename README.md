@@ -62,6 +62,7 @@ The project is managed using **uv**. To create the python virtual environment an
 
 ```console
 uv sync --all-packages --group dev
+uv run pre-commit install
 ```
 
 Modern IDEs will automaticaly activate the virtual environment. Otherwise just activate it manually:
@@ -77,7 +78,7 @@ To implement the CI pipelines, mainstream open-source development tools are used
   - **ruff**: linter and code formatter
   - **ty**: fast type checker
 
-Unit and integration testing is based on **pytest**.
+Unit and integration testing are based on **pytest**.
 
 Assuming virtual environment is activated, these are suv ome commands typically used in CI pipelines:
 
@@ -93,7 +94,7 @@ ty check .
 pytest
 ```
 
-Currently, the CI pipeline is implemented on top of **Github Actions**.
+Currently, a local CI pipeline is trigger after each commit using **pre-commit** package. A server-based CI pipeline is implemented on top of **Github Actions**.
 
 ## 4. Functional scope
 

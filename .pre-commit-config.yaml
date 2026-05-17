@@ -1,0 +1,43 @@
+# Mirrors .github/workflows/ci.yml (lint-and-test job).
+# Rust extension build is manual: pre-commit run build-rust-extension --hook-stage manual
+
+default_install_hook_types: [pre-commit]
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ruff-format
+        name: ruff format (check)
+        entry: uv run ruff format --check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ty-check
+        name: ty check
+        entry: uv run ty check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: pytest
+        name: pytest
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: build-rust-extension
+        name: build Rust extension
+        entry: bin/build_rust_extension.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [manual]
