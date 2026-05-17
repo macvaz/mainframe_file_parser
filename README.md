@@ -2,7 +2,7 @@
 
 High-performing Python-based tool for **parsing fixed-width mainframe files**. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking industry.
 
-Additionally, the input file is validated using a **set of declarative validation formulas** in an ad hoc DSL (domain-specific language).
+Additionally, the input file is validated using a **set of declarative validation formulas** in an adhoc DSL (domain-specific language).
 
 ## 1. Goal
 
@@ -142,7 +142,7 @@ A visual representation of the expected results is depicted in the following scr
 
 ![Resulting dataframe](docs/resulting_dataframe.jpg)
 
-**Hint:** **Jupyter notebooks** are recommended for quick experimentation. Use [this notebook](notebooks/exploration.ipynb) to explore the project interactively.
+**Jupyter notebooks** are recommended for quick experimentation. Use [this notebook](notebooks/exploration.ipynb) to explore the project interactively.
 
 ## 5. Performance analysis
 
@@ -186,7 +186,7 @@ The `benchmark.py` script measures execution time for these stages:
 
 Typical execution times for each implementation are:
 
-| Backend | Time (same workload, same machine) | CPU during conversion |
+| Backend | Time (same workload, same machine) | CPU usage   |
 | --- | ---: | --- |
 | **Pure Rust** | **~10 s** (typical) | High utilization across cores |
 | **Python using Polars** | **~10 s** (typical) | High utilization across cores |
