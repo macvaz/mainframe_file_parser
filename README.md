@@ -2,7 +2,7 @@
 
 High-performing Python-based tool for **parsing fixed-width mainframe files**. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking industry.
 
-Additionaly, the input file is validated based on a **set of declarative validation formulas**.
+Additionaly, the input file is validated based on a **set of declarative validation formulas** using an adhoc DSL (Domain Specific Language).
 
 ## 1. Goal
 
@@ -66,7 +66,7 @@ Modern IDEs will automaticaly activate the virtual environment. Otherwise just a
 source .venv/bin/activate
 ```
 
-Additionally, using **Jupyter notebooks** is highly recommended to quick experimentation with the code. In the [notebooks](notebooks/) folder some working examples are available.
+Additionally, using **Jupyter notebooks** is highly recommended for quick experimentation with the code. Use [this notebook](notebooks/exploration.ipynb) to interactively understand how the project works. 
 
 ## 3. CI pipelines
 
