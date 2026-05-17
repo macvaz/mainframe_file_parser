@@ -71,7 +71,7 @@ Modern IDEs will automatically activate the virtual environment. Otherwise, acti
 source .venv/bin/activate
 ```
 
-### Laptop installation in corporate secured networks
+### Laptop installation in a corporate secured network
 
 The installation process is different if you work for a company with high security standards where no direct pypi.org connectivy is allowed. Additionally, uv will not be able ot install python interpreters either.
 
@@ -92,7 +92,7 @@ mamba activate mainframe_validator
 mamba install -c conda-forge uv
 ```
 
-2. Pointing uv to you local artifactory editintg project.toml
+2. Pointing uv to you local artifactory editing [pyproject.toml](pyproject.toml)
 
 ```toml
 [[tool.uv.index]]
@@ -101,7 +101,7 @@ url = "https://artifactory.corp.example/artifactory/api/pypi/pypi-virtual/simple
 default = true
 ```
 
-3. Installing dependencies
+3. Installing dependencies usinv uv
 
 ```console
 cd <your_local_path_to_repo>/mainframe_validator
@@ -110,6 +110,7 @@ uv sync --all-packages --group dev
 source .venv/bin/activate
 ```
 
+Sometimes, depending of the **local group policies**, uv will not run unless the project code is located in a special folder like `D:\custom_tools`. Place the source code in that folder on that case.
 
 ## 3. CI pipelines
 
