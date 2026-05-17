@@ -144,7 +144,15 @@ uv run bin/generate_huge_ascii_file.py \
   data/huge_fixed_size_file.dat
 ```
 
-The sample file will contain around **32,540,000** records.
+The sample file will contain around **32,540,000** records. 
+
+If the data file is generated with a different name than **"huge_fixed_size_file"**, set the following enviroment variable accordingly:
+
+```console
+# Don't set the file extension or the path, just the name
+# Default value is "huge_fixed_size_file"
+export MAINFRAME_FILE_STEM=<name_of_data_file> 
+```
 
 
 ### Running the performance tests

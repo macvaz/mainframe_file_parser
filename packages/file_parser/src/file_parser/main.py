@@ -11,8 +11,8 @@ from file_parser.utils import get_total_length, scan_parquet_output
 
 
 def parse(
-    input_path: str,
-    output_path: str,
+    input_path: Path,
+    output_path: Path,
     schema: FileSchema,
     parser: MainframeParser,
 ) -> pl.LazyFrame:

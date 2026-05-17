@@ -32,7 +32,7 @@ def load_formulas(path: str | Path) -> str:
     return Path(path).read_text(encoding="utf-8")
 
 
-def compute(path: str | Path, datapoints_lf: pl.LazyFrame) -> pl.LazyFrame:
+def compute(path: Path, datapoints_lf: pl.LazyFrame) -> pl.LazyFrame:
     """Evaluate formulas and append each result as a new column."""
     formulas = load_formulas(path)
     assignments = parse_formulas(formulas)

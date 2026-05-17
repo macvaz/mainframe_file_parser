@@ -58,3 +58,12 @@ def remove_file_or_tree(path: str | Path) -> None:
         shutil.rmtree(p)
     elif p.is_file():
         p.unlink()
+
+
+def repo_root() -> Path:
+    """Project root (directory containing pyproject.toml), from any cwd."""
+    for path in (Path.cwd(), *Path.cwd().parents):
+        if (path / "pyproject.toml").is_file():
+            return path
+    msg = "Could not find project root (no pyproject.toml in cwd or parents)"
+    raise FileNotFoundError(msg)

@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import time
-from pathlib import Path
 
+from file_parser.constants import (
+    FORMULAS_PATH,
+    INPUT_PATH,
+    INTERMEDIATE_OUTPUT_PATH,
+    OUTPUT_PATH,
+)
 from file_parser.main import parse
 from file_parser.parsers.polars import file_parser
 from file_parser.utils import get_schema_from_copybook, remove_file_or_tree
 from formula_engine import compute
-
-INPUT_PATH = "data/huge_fixed_size_file.dat"
-INTERMEDIATE_OUTPUT_PATH = "data/huge_fixed_size_file.parquet"
-OUTPUT_PATH = "data/huge_fixed_size_file_validations.parquet"
-FORMULAS_PATH = Path(__file__).resolve().parent / "formulas.txt"
 
 COPYBOOK = """
        01  FILE-RECORD.

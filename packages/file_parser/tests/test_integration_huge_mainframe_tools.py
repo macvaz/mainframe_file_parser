@@ -6,6 +6,7 @@ from typing import cast
 import polars as pl
 import pytest
 
+from file_parser.constants import INPUT_PATH
 from file_parser.types import ColumnDefinition
 
 RECORD_SIZE = 66
@@ -27,18 +28,16 @@ def test_huge_fixed_file_to_parquet_single_writer(tmp_path: Path) -> None:
         ),
     )
 
-    root = Path(__file__).resolve().parents[3]
-    input_path = root / "data" / "huge_fixed_size_file.dat"
-    if not input_path.is_file():
-        pytest.skip(f"Huge input file not found: {input_path}")
+    if not INPUT_PATH.is_file():
+        pytest.skip(f"Huge input file not found: {INPUT_PATH}")
 
-    file_size = input_path.stat().st_size
+    file_size = INPUT_PATH.stat().st_size
     assert file_size % RECORD_SIZE == 0
     expected_rows = file_size // RECORD_SIZE
 
     out_dir = tmp_path / "parquet"
     mainframe_tools.parse_and_write_parquet(
-        str(input_path),
+        str(INPUT_PATH),
         str(out_dir),
         SCHEMA,
         RECORD_SIZE,
