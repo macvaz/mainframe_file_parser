@@ -12,6 +12,10 @@ The main goal of this repo is to benchmark two different implementations:
 * a [Python](packages/file_parser/src/file_parser/parsers/polars/parser.py) parser (based on [polars](https://github.com/pola-rs/polars) analytical library)
 * a [Rust](packages/file_parser/rust/src/lib.rs) parser developed from the scratch
 
+Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
+  * Apache Arrow
+  * SIMD vectorized CPU instructions
+
 ## 2. Project structure and setup
 
 The project is structured following a monorepo setup. Several python packages can be found in the [packages](packages/) folder.
@@ -65,8 +69,6 @@ Modern IDEs will automaticaly activate the virtual environment. Otherwise just a
 ```console
 source .venv/bin/activate
 ```
-
-Additionally, using **Jupyter notebooks** is highly recommended for quick experimentation with the code. Use [this notebook](notebooks/exploration.ipynb) to interactively understand how the project works. 
 
 ## 3. CI pipelines
 
@@ -124,9 +126,7 @@ A visual representation of the expected results is depicted in the following scr
 
 ![Resulting dataframe](docs/resulting_dataframe.jpg)
 
-Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
-  * Apache Arrow
-  * SIMD vectorized CPU instructions
+**Recommendation**: Using **Jupyter notebooks** is highly recommended for quick experimentation with the code. Use [this notebook](notebooks/exploration.ipynb) to interactively understand how the project works. 
 
 ## 5. Performance analysis
 
