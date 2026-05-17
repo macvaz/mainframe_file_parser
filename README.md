@@ -1,18 +1,18 @@
 # mainframe-validator
 
-High-performing Python-based tool for **parsing fixed-width mainframe files**. This is a common pattern in Regtech projects (Regulatory Technologies) applied in the central banking industry.
+A high-performance Python tool for **parsing fixed-width mainframe files**. This is a common pattern in Regtech projects (Regulatory Technologies) in the central banking industry.
 
-Additionally, the input file is validated using a **set of declarative validation formulas** in an adhoc DSL (domain-specific language).
+Additionally, the input file is validated using a **set of declarative validation formulas** in an ad-hoc DSL (domain-specific language).
 
 ## 1. Goal
 
-According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), Rust is well-known as one of the fastest programming languages in execution time. Python is also known as one of the slowest.
+According to many [technical assessments](https://niklas-heer.github.io/speed-comparison/), Rust is well known as one of the fastest programming languages in terms of execution time. Python is also known as one of the slowest.
 
 The main goal of this repo is to benchmark two different implementations:
 * a [Python](packages/file_parser/src/file_parser/parsers/polars/parser.py) parser (based on the [Polars](https://github.com/pola-rs/polars) analytical library)
 * a [Rust](packages/file_parser/rust/src/lib.rs) parser developed from scratch
 
-Both versions rely on open-source high-performing analytical libraries, enabling state-of-the-art data processing techniques like:
+Both versions rely on high-performance open-source analytical libraries, enabling state-of-the-art data processing techniques such as:
   * Apache Arrow
   * SIMD vectorized CPU instructions
 
@@ -71,28 +71,28 @@ Modern IDEs will automatically activate the virtual environment. Otherwise, acti
 source .venv/bin/activate
 ```
 
-### Laptop installation in a corporate secured network
+### Laptop installation on a locked-down corporate network
 
-The installation process is different if you work for a company with high security standards where no direct pypi.org connectivy is allowed. Additionally, uv will not be able ot install python interpreters either.
+The installation process differs if you work for a company with strict security policies where direct access to pypi.org is not allowed. Additionally, uv will not be able to install Python interpreters either.
 
-Under thise conditions, a professional corporate-ready deployment is the following:
-* Install [miniforge](https://github.com/conda-forge/miniforge) following your employer installation procedure.
+Under these conditions, a professional, corporate-ready deployment workflow is as follows:
+* Install [miniforge](https://github.com/conda-forge/miniforge) following your employer's installation procedure
 * Create a Python 3.12 mamba environment
 * Install uv
-* Create the project uv virtual env reusing the mamba enviroment
-* Configure your project.toml to point to a private package index
-* Resolve the dependencies using uv
+* Create the project's uv virtual environment using the mamba environment
+* Configure `pyproject.toml` to point to a private package index
+* Resolve dependencies with uv
 
-The complete corporate flow is the following:
+The complete corporate workflow is as follows:
 
-1. Install python interpreter and uv
+1. Install the Python interpreter and uv
 ```console
 mamba create -n mainframe_validator python=3.12 -y   
 mamba activate mainframe_validator
 mamba install -c conda-forge uv
 ```
 
-2. Pointing uv to you local artifactory editing [pyproject.toml](pyproject.toml)
+2. Point uv to your local Artifactory by editing [pyproject.toml](pyproject.toml) and adding this section:
 
 ```toml
 [[tool.uv.index]]
@@ -101,7 +101,7 @@ url = "https://artifactory.corp.example/artifactory/api/pypi/pypi-virtual/simple
 default = true
 ```
 
-3. Installing dependencies usinv uv
+3. Install dependencies with uv
 
 ```console
 cd <your_local_path_to_repo>/mainframe_validator
@@ -110,12 +110,12 @@ uv sync --all-packages --group dev
 source .venv/bin/activate
 ```
 
-Sometimes, depending of the **local group policies**, uv will not run unless the project code is located in a special folder like `D:\custom_tools`. Place the source code in that folder on that case.
+Sometimes, depending on **local group policies**, uv will not run unless the project code is in a designated folder such as `D:\custom_tools`. In that case, clone or copy the repository into that folder.
 
 ## 3. CI pipelines
 
 CI pipelines use mainstream open-source tools from [astral.sh](https://astral.sh):
-  - **uv:** project management + dependency management
+  - **uv**: project management and dependency management
   - **ruff**: linter and code formatter
   - **ty**: fast type checker
 
@@ -158,7 +158,7 @@ Starting from a [COBOL copybook](https://www.ibm.com/docs/en/cics-ts/5.5.0?topic
   * **Parse the fixed-width file** according to the **copybook**, convert it to a tabular analytics file (Parquet), and store it on disk
   * **Apply validation formulas** from the [formula language](formulas.txt) to that Parquet data, adding one column per formula
 
-The sample copybook used is the following:
+The sample copybook is:
 
 ```cobol
        01  FILE-RECORD.
@@ -171,7 +171,7 @@ The resulting DataFrame has two main parts:
   - One column per field defined in the copybook (FULL_NAME, YEAR and AMOUNT)
   - One column per validation formula defined in the [formulas.txt](formulas.txt) file (VALID_NAME, VALID_YEAR, VALID_AMOUNT)
 
-A sample list of declarative validation formulas is the following:
+Sample declarative validation formulas:
 
 ```SQL
 VALID_NAME: LEN({FULL_NAME}) == 9
@@ -179,7 +179,7 @@ VALID_YEAR: BETWEEN({YEAR}, 1900, 2026)
 VALID_AMOUNT: BETWEEN({AMOUNT}, 0, 672581176.44)
 ```
 
-A visual representation of the expected results is depicted in the following screenshot:
+The expected results are shown in the screenshot below:
 
 ![Resulting dataframe](docs/resulting_dataframe.jpg)
 
@@ -193,7 +193,7 @@ The script `bin/generate_huge_ascii_file.py` writes a line-oriented fixed-width 
 
 During file generation, random values are chosen for three supported data types (`string`, `integer`, `decimal`). Ensure sufficient free disk space (the default output is at least **2 GiB**; the `data/` folder is gitignored).
 
-In order to create a sample file, execute the following:
+To create a sample file, run:
 
 ```console
 uv run bin/generate_huge_ascii_file.py \
@@ -201,7 +201,7 @@ uv run bin/generate_huge_ascii_file.py \
   data/huge_fixed_size_file.dat
 ```
 
-The sample file will contain around **32,540,000** records. 
+The sample file will contain around **32,540,000** records.
 
 If the data file uses a name other than **`huge_fixed_size_file`**, set the following environment variable:
 
@@ -214,7 +214,7 @@ export MAINFRAME_FILE_STEM=<name_of_data_file>
 
 ### Running the performance tests
 
-From project root:
+From the project root:
 
 ```console
 uv run benchmark.py
@@ -238,9 +238,9 @@ According to experimental results and benchmarks, the **execution wall times of 
 
 Both implementations can **saturate available CPU cores** on the test machine [1]. Thermal throttling may occur (especially on mainstream laptops with limited cooling), lowering CPU frequency when core temperatures stay high.
 
-Memory consumption is stable during execution, **being able to process files larger than memory**.
+Memory consumption stays stable during execution, so the tool **can process files larger than available RAM**.
 
-Additionally, **the Python-based implementation is way simpler and more maintainable**.
+Additionally, **the Python-based implementation is much simpler and more maintainable**.
 
 **Avoid pure Python UDFs in the Polars API when performance matters** (expect a 20–50× slowdown). Implement transformations with Polars expressions that run in Polars’ Rust execution engine.
 
