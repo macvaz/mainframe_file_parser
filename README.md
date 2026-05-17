@@ -26,6 +26,7 @@ For readability reasons, the most relevant project folders and files are hightli
  mainframe_validator/
 +├── .cursor/                         # Cursor skills for AI code assistants  
 +├── .github/                         # Github Actions CI pipelines  
++├── .pre-commit-config.yaml          # Local hooks (ruff, ty, pytest; mirrors CI)
  ├── bin/
  ├── data/                            # Data files (gitignored)
  ├── docs/
@@ -62,7 +63,6 @@ The project is managed using **uv**. To create the python virtual environment an
 
 ```console
 uv sync --all-packages --group dev
-uv run pre-commit install
 ```
 
 Modern IDEs will automaticaly activate the virtual environment. Otherwise just activate it manually:
@@ -94,7 +94,22 @@ ty check .
 pytest
 ```
 
-Currently, a local CI pipeline is trigger after each commit using **pre-commit** package. A server-based CI pipeline is implemented on top of **Github Actions**.
+Running individual commands manually is not covenient. A completely automated local CI pipeline can be installed using **pre-commit** package as follows: 
+
+```console
+uv run pre-commit install
+```
+
+After installing the git hooks, each git commit executed in the development enviroment will trigger automatically a local CI pipeline as follows:
+
+```console
+ruff check...............................................................Passed
+ruff format (check)......................................................Passed
+ty check.................................................................Passed
+pytest...................................................................Passed
+```
+
+Additionaly, a server-based CI pipeline is implemented on top of **Github Actions**.
 
 ## 4. Functional scope
 
