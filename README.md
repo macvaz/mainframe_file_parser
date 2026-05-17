@@ -186,7 +186,7 @@ Additionally, **the Python-based implementation is way simpler and more maintain
 
 **Avoid running any pure Python function as an UDFs in the polars API if performance is an goal** (expect 20-50x penalty in execution time). For coding your data transformations, use only polars expressions that are backed by rust binary execution enviroment. 
 
-## 6. References and media
+## 7. References and media
 
 [1] htop screenshot showing CPU utilization during tests
 
