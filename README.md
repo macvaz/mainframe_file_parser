@@ -85,7 +85,7 @@ Under these conditions, a professional, corporate-ready deployment setup is as f
 
 The complete corporate workflow is as follows:
 
-1. Install the Python interpreter and uv
+1. Install the Python interpreter and uv:
 ```console
 mamba create -n mainframe_validator python=3.12 -y   
 mamba activate mainframe_validator
@@ -101,7 +101,7 @@ url = "https://artifactory.corp.example/artifactory/api/pypi/pypi-virtual/simple
 default = true
 ```
 
-3. Install dependencies with uv
+3. Install dependencies with uv:  
 
 ```console
 cd <your_local_path_to_repo>/mainframe_validator
@@ -110,7 +110,7 @@ uv sync --all-packages --group dev
 source .venv/bin/activate
 ```
 
-Sometimes, depending on **local group policies**, uv will not run unless the project code is in a designated folder such as `D:\custom_tools`. In that case, clone or copy the repository into that folder.
+Sometimes, depending on **local security group policies**, uv will not run unless the project code is in a designated folder such as `D:\custom_tools`. In that case, clone or copy the repository into that folder.
 
 ## 3. CI pipelines
 
