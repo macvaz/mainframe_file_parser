@@ -1,8 +1,8 @@
 # mainframe-validator
 
-A high-performance Python tool for **parsing fixed-width mainframe files** based on **COBOL copybooks**. This is a common pattern in Regtech projects (Regulatory Technologies) in the central banking industry.
+A high-performance Python tool for **parsing fixed-width mainframe files** based on **COBOL copybooks**. This is a common pattern in Regtech projects (Regulatory Technologies) used in the central banking industry.
 
-Additionaly, the received input file is validated using a **set of declarative validation formulas** written externally using an ad-hoc DSL (domain-specific language).
+Additionaly, the received input file is validated using a **set of declarative validation formulas** written externally using an **ad-hoc DSL (domain-specific language)**.
 
 ## 1. Goal
 
