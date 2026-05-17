@@ -73,9 +73,9 @@ source .venv/bin/activate
 
 ### Laptop installation on a locked-down corporate network
 
-The installation process differs if you work for a company with strict security policies where direct access to pypi.org is not allowed. Additionally, uv will not be able to install Python interpreters either.
+The installation process differs if you work for a company with **strict security policies** where direct access to pypi.org is not allowed. Additionally, uv will not be able to install Python interpreters either.
 
-Under these conditions, a professional, corporate-ready deployment workflow is as follows:
+Under these conditions, a professional, corporate-ready deployment setup is as follows:
 * Install [miniforge](https://github.com/conda-forge/miniforge) following your employer's installation procedure
 * Create a Python 3.12 mamba environment
 * Install uv
